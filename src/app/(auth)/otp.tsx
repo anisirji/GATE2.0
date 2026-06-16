@@ -57,7 +57,7 @@ export default function OtpScreen() {
         setError('Invalid code. Try again.');
         return;
       }
-      router.replace('/(app)/(tabs)');
+      router.replace('/(auth)/role-select');
     }, 600);
   };
 

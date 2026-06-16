@@ -7,6 +7,7 @@ export default function AppLayout() {
       <Stack.Screen name="qr-pass" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       <Stack.Screen name="guest-pass" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       <Stack.Screen name="invite-received" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="maintenance" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
     </Stack>
   );
 }

@@ -9,7 +9,7 @@ import { Pill } from '@/components/StatusBadge';
 import { Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { homeRouteForRole, useAuth, type Role } from '@/lib/auth';
 
-type Row = { icon: keyof typeof Feather.glyphMap; label: string; hint?: string; onPress?: () => void; danger?: boolean };
+type Row = { icon: keyof typeof Feather.glyphMap; label: string; hint?: string; onPress?: () => void };
 
 const ROLES: { role: Role; label: string }[] = [
   { role: 'resident', label: 'Resident' },
@@ -17,36 +17,33 @@ const ROLES: { role: Role; label: string }[] = [
   { role: 'admin', label: 'Admin' },
 ];
 
-export default function Profile() {
+export default function AdminProfile() {
   const { user, switchRole, signOut } = useAuth();
   const router = useRouter();
 
   const rows: Row[] = [
-    { icon: 'user', label: 'Edit profile', hint: 'Name, photo, contact' },
-    { icon: 'users', label: 'Family members', hint: '1 added' },
-    { icon: 'bell', label: 'Notifications', hint: 'Visitors, dues, notices' },
-    { icon: 'shield', label: 'Trusted vehicles', hint: '2 saved' },
+    { icon: 'home', label: 'Society details', hint: 'Address, contacts, blocks' },
+    { icon: 'sliders', label: 'Visitor rules', hint: 'After-hours, pre-approval defaults' },
+    { icon: 'credit-card', label: 'Billing & dues setup', hint: 'Maintenance, utilities, late fees' },
+    { icon: 'users', label: 'Committee members' },
+    { icon: 'shield', label: 'Roles & permissions' },
+    { icon: 'database', label: 'Data export & backups' },
     { icon: 'help-circle', label: 'Help & support' },
-    { icon: 'info', label: 'About Civic Shield' },
   ];
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={[Type.headlineLgMobile, { color: Palette.onSurface }]}>Profile</Text>
-        </View>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <Text style={[Type.headlineLgMobile, { color: Palette.onSurface }]}>Admin settings</Text>
 
-        <Card padding="lg" style={styles.identityCard} elevated>
-          <Avatar name={user?.name ?? 'You'} color={user?.avatarColor} size={64} />
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text style={[Type.titleLg, { color: Palette.onSurface }]} numberOfLines={1}>
-              {user?.name ?? 'Resident'}
-            </Text>
+        <Card padding="lg" style={styles.idCard} elevated>
+          <Avatar name={user?.name ?? 'Admin'} color={user?.avatarColor} size={64} />
+          <View style={{ flex: 1 }}>
+            <Text style={[Type.titleLg, { color: Palette.onSurface }]}>{user?.name}</Text>
             <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]}>{user?.phone}</Text>
             <View style={{ flexDirection: 'row', gap: Spacing.xs, marginTop: Spacing.xs }}>
-              <Pill label={user?.role ?? 'resident'} bg={Palette.primaryContainer} color={Palette.primaryDeep} />
-              <Pill label={user?.flat ?? '—'} bg={Palette.surfaceContainerHigh} color={Palette.onSurface} />
+              <Pill label="Admin" bg={Palette.warningContainer} color={Palette.warning} />
+              <Pill label={user?.designation ?? 'Society Secretary'} bg={Palette.surfaceContainerHigh} color={Palette.onSurface} />
             </View>
           </View>
         </Card>
@@ -56,19 +53,13 @@ export default function Profile() {
             <Pressable
               key={r.label}
               onPress={r.onPress}
-              style={({ pressed }) => [
-                styles.row,
-                i < rows.length - 1 && styles.rowBorder,
-                pressed && { backgroundColor: Palette.surfaceContainerLow },
-              ]}>
-              <View style={[styles.rowIcon, r.danger && { backgroundColor: Palette.errorContainer }]}>
-                <Feather name={r.icon} size={18} color={r.danger ? Palette.error : Palette.primary} />
+              style={({ pressed }) => [styles.row, i < rows.length - 1 && styles.rowBorder, pressed && { backgroundColor: Palette.surfaceContainerLow }]}>
+              <View style={styles.rowIcon}>
+                <Feather name={r.icon} size={18} color={Palette.tertiary} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[Type.titleMd, { color: r.danger ? Palette.error : Palette.onSurface, fontSize: 15 }]}>{r.label}</Text>
-                {r.hint ? (
-                  <Text style={[Type.labelSm, { color: Palette.onSurfaceVariant }]}>{r.hint}</Text>
-                ) : null}
+                <Text style={[Type.titleMd, { color: Palette.onSurface, fontSize: 15 }]}>{r.label}</Text>
+                {r.hint ? <Text style={[Type.labelSm, { color: Palette.onSurfaceVariant }]}>{r.hint}</Text> : null}
               </View>
               <Feather name="chevron-right" size={20} color={Palette.outline} />
             </Pressable>
@@ -76,7 +67,7 @@ export default function Profile() {
         </Card>
 
         <Card padding="lg" style={{ gap: Spacing.md }}>
-          <Text style={[Type.titleMd, { color: Palette.onSurface }]}>Switch role (demo)</Text>
+          <Text style={[Type.titleMd, { color: Palette.onSurface }]}>Switch role</Text>
           <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
             {ROLES.map((r) => {
               const active = r.role === user?.role;
@@ -105,10 +96,6 @@ export default function Profile() {
           <Text style={[Type.labelMd, { color: Palette.error }]}>Sign out</Text>
         </Pressable>
 
-        <Text style={[Type.labelSm, { color: Palette.outline, textAlign: 'center', marginTop: Spacing.lg }]}>
-          MySociety · v1.0.0 (demo)
-        </Text>
-
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
     </SafeAreaView>
@@ -118,12 +105,11 @@ export default function Profile() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.surface },
   scroll: { padding: Spacing.lg, gap: Spacing.md, paddingBottom: Spacing.xxxl },
-  header: { gap: 4, marginBottom: Spacing.xs },
-  identityCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg },
+  idCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.md },
   rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Palette.surfaceContainerHigh },
-  rowIcon: { width: 36, height: 36, borderRadius: Radius.md, backgroundColor: Palette.primaryContainer, alignItems: 'center', justifyContent: 'center' },
-  signOut: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, marginTop: Spacing.sm },
+  rowIcon: { width: 36, height: 36, borderRadius: Radius.md, backgroundColor: Palette.warningContainer, alignItems: 'center', justifyContent: 'center' },
   roleChip: { flex: 1, paddingVertical: Spacing.md, alignItems: 'center', borderRadius: Radius.md, backgroundColor: Palette.surfaceContainerLow },
   roleChipActive: { backgroundColor: Palette.primary },
+  signOut: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, marginTop: Spacing.sm },
 });
