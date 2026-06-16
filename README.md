@@ -1,56 +1,64 @@
-# Welcome to your Expo app 👋
+# GATE 2.0 — MySociety Smart Community
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Mobile-first society / gated-community management app. Cross-platform (iOS + Android) via Expo.
+Designed against the **Civic Shield** system from a Stitch project (secure-blue + teal, Plus Jakarta Sans + Inter).
 
-## Get started
+## What's in the MVP
 
-1. Install dependencies
+Single Expo app, three personas planned (resident, guard, admin). Roles share core entry/visitor features — admins are residents too.
 
-   ```bash
-   npm install
-   ```
+This first slice covers the **resident flow**:
 
-2. Start the app
+- Splash → Onboarding (3 slides) → Login (phone) → OTP verification
+- Bottom-tabs main app: **Home** dashboard · **Visitors** list · **Payments** · **Notices** · **Profile**
+- Modal flows: **Generate QR Pass**, **Pre-approve Guest**, **Invite Received**
 
-   ```bash
-   npx expo start
-   ```
+All data is mocked in `src/data/mockData.ts`. Auth is a stub — any 6-digit code logs you in.
 
-In the output, you'll find options to open the app in a
+## Stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- [Expo](https://expo.dev) ~56 with `expo-router` (file-based routes)
+- TypeScript, strict mode
+- `@expo-google-fonts/plus-jakarta-sans` + `@expo-google-fonts/inter`
+- `react-native-qrcode-svg` for visitor QR passes
+- `@expo/vector-icons` (Feather set)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Getting started
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Scan the QR with **Expo Go** on iOS or Android, or press `i` / `a` for simulators.
 
-### Other setup steps
+## Project layout
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```
+src/
+  app/
+    index.tsx              # redirects to /(auth)/splash
+    (auth)/                # splash, onboarding, login, otp
+    (app)/
+      (tabs)/              # home, visitors, payments, notices, profile
+      qr-pass.tsx          # modal: generate visitor QR
+      guest-pass.tsx       # modal: pre-approve guest
+      invite-received.tsx  # modal: guest-side invite view
+  components/              # Button, Card, Input, StatusBadge, AppHeader, Avatar
+  constants/theme.ts       # Civic Shield design tokens
+  data/mockData.ts         # demo visitors, payments, notices, residents
+  lib/auth.tsx             # AuthContext (mocked)
+```
 
-## Learn more
+## Design source
 
-To learn more about developing your project with Expo, look at the following resources:
+Stitch project: `10401026301242270114` — *MySociety Smart Community Platform*.
+Design system: **Civic Shield** (light theme, 8px grid, Plus Jakarta Sans + Inter).
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Roadmap
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- [ ] Guard persona: dashboard, QR scan, check-in confirmation, entry log
+- [ ] Admin persona: notices broadcasting, staff tracking, payments reporting
+- [ ] Real backend (Supabase or Firebase) — replace mock data, real phone OTP
+- [ ] Push notifications for visitor arrivals and notices
+- [ ] Web/desktop admin dashboard (Next.js, separate app)

@@ -1,5 +1,30 @@
 {
   "enabledPlugins": {
     "expo@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Bash(git:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(git rebase:*)",
+      "Bash(git commit:*)",
+      "Bash(git add:*)",
+      "Bash(git stash:*)",
+      "Bash(git remote:*)",
+      "Bash(git tag:*)",
+      "Bash(gh:*)",
+      "Read(*)",
+      "Edit(*)",
+      "Write(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "mcp__stitch__*",
+      "mcp__pencil__*"
+    ],
+    "defaultMode": "acceptEdits"
   }
 }
