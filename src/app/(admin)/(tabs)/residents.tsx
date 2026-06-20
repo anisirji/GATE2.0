@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { Pill } from '@/components/StatusBadge';
-import { Palette, Radius, Spacing, Type } from '@/constants/theme';
+import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { MOCK_RESIDENTS } from '@/data/mockData';
 
 export default function Residents() {
@@ -52,7 +52,7 @@ export default function Residents() {
         ) : null}
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterRow}>
         {(['all', 'owner', 'tenant', 'family'] as const).map((f) => {
           const active = f === filter;
           return (
@@ -107,11 +107,12 @@ export default function Residents() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.surface },
-  header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm, paddingBottom: Spacing.md, gap: 4 },
-  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginHorizontal: Spacing.lg, paddingHorizontal: Spacing.lg, height: 48, borderRadius: Radius.md, backgroundColor: Palette.surfaceContainerLow, marginBottom: Spacing.sm },
-  filterRow: { paddingHorizontal: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.md },
-  chip: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.pill, backgroundColor: Palette.surfaceContainerLow },
-  chipActive: { backgroundColor: Palette.tertiary },
-  scroll: { paddingHorizontal: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.xxxl },
+  header: { paddingHorizontal: Layout.pageGutter, paddingTop: Layout.pageTop, paddingBottom: Spacing.lg, gap: 4 },
+  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginHorizontal: Layout.pageGutter, paddingHorizontal: Spacing.lg, height: 48, borderRadius: Radius.md, backgroundColor: Palette.surfaceContainerLowest, borderWidth: StyleSheet.hairlineWidth, borderColor: Palette.border, marginBottom: Spacing.md },
+  filterScroll: { flexGrow: 0, flexShrink: 0 },
+  filterRow: { paddingHorizontal: Layout.pageGutter, gap: Spacing.sm, paddingBottom: Spacing.lg },
+  chip: { paddingHorizontal: Spacing.lg, paddingVertical: 8, borderRadius: Radius.pill, backgroundColor: Palette.surfaceContainerLowest, borderWidth: StyleSheet.hairlineWidth, borderColor: Palette.border },
+  chipActive: { backgroundColor: Palette.onSurface, borderColor: Palette.onSurface },
+  scroll: { paddingHorizontal: Layout.pageGutter, gap: Spacing.sm, paddingBottom: Layout.scrollBottom },
   empty: { padding: Spacing.xl, alignItems: 'center', gap: Spacing.sm, backgroundColor: Palette.surfaceContainerLow, borderRadius: Radius.lg },
 });

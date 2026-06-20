@@ -31,7 +31,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
         {leftIcon ? (
           <Feather
             name={leftIcon}
-            size={18}
+            size={17}
             color={showError ? Palette.error : focused ? Palette.primary : Palette.onSurfaceVariant}
             style={{ marginRight: Spacing.sm }}
           />
@@ -62,13 +62,13 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
 
 const styles = StyleSheet.create({
   wrap: { width: '100%' },
-  label: { color: Palette.onSurfaceVariant, marginBottom: Spacing.xs },
+  label: { color: Palette.onSurfaceVariant, marginBottom: Spacing.sm },
   field: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.borderStrong,
     backgroundColor: Palette.surfaceContainerLowest,
     paddingHorizontal: Spacing.lg,
     minHeight: 52,

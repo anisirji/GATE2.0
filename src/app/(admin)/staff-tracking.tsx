@@ -62,7 +62,7 @@ export default function StaffTracking() {
         </View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterRow}>
         {FILTERS.map((f) => {
           const active = f.key === filter;
           return (
@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
   iconBtn: { width: 40, height: 40, borderRadius: Radius.pill, backgroundColor: Palette.surfaceContainerLow, alignItems: 'center', justifyContent: 'center' },
   summaryRow: { flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
   sumCard: { flex: 1, padding: Spacing.md, borderRadius: Radius.lg, alignItems: 'center', gap: 2 },
+  filterScroll: { flexGrow: 0, flexShrink: 0 },
   filterRow: { paddingHorizontal: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.md },
   chip: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.pill, backgroundColor: Palette.surfaceContainerLow },
   chipActive: { backgroundColor: Palette.tertiary },

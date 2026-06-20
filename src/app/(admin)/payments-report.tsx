@@ -82,7 +82,7 @@ export default function PaymentsReport() {
           </View>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterRow}>
           {FILTERS.map((f) => {
             const active = f.key === filter;
             return (
@@ -142,6 +142,7 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%', backgroundColor: '#fff', borderRadius: 4 },
   statsRow: { flexDirection: 'row', gap: Spacing.sm },
   statCard: { flex: 1, padding: Spacing.md, borderRadius: Radius.lg, alignItems: 'center', gap: 2 },
+  filterScroll: { flexGrow: 0, flexShrink: 0 },
   filterRow: { gap: Spacing.sm, paddingVertical: Spacing.sm },
   chip: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.pill, backgroundColor: Palette.surfaceContainerLow },
   chipActive: { backgroundColor: Palette.tertiary },

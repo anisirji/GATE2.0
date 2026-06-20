@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Pill } from '@/components/StatusBadge';
-import { Palette, Radius, Spacing, Type } from '@/constants/theme';
+import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { MOCK_NOTICES, type Notice } from '@/data/mockData';
 
 const CAT_STYLES: Record<Notice['category'], { bg: string; fg: string; label: string }> = {
@@ -74,8 +74,8 @@ export default function AdminNotices() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.surface },
-  header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm, paddingBottom: Spacing.md, gap: 4 },
-  scroll: { paddingHorizontal: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.xxxl },
+  header: { paddingHorizontal: Layout.pageGutter, paddingTop: Layout.pageTop, paddingBottom: Spacing.xl, gap: 4 },
+  scroll: { paddingHorizontal: Layout.pageGutter, gap: Spacing.md, paddingBottom: Layout.scrollBottom },
   metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   menu: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: Radius.pill },
   footRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.md },

@@ -6,19 +6,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { Pill } from '@/components/StatusBadge';
-import { Palette, Radius, Spacing, Type } from '@/constants/theme';
-import { homeRouteForRole, useAuth, type Role } from '@/lib/auth';
+import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
+import { useAuth } from '@/lib/auth';
 
 type Row = { icon: keyof typeof Feather.glyphMap; label: string; hint?: string; onPress?: () => void; danger?: boolean };
 
-const ROLES: { role: Role; label: string }[] = [
-  { role: 'resident', label: 'Resident' },
-  { role: 'guard', label: 'Guard' },
-  { role: 'admin', label: 'Admin' },
-];
-
 export default function Profile() {
-  const { user, switchRole, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const router = useRouter();
 
   const rows: Row[] = [
@@ -37,21 +31,25 @@ export default function Profile() {
           <Text style={[Type.headlineLgMobile, { color: Palette.onSurface }]}>Profile</Text>
         </View>
 
-        <Card padding="lg" style={styles.identityCard} elevated>
-          <Avatar name={user?.name ?? 'You'} color={user?.avatarColor} size={64} />
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text style={[Type.titleLg, { color: Palette.onSurface }]} numberOfLines={1}>
-              {user?.name ?? 'Resident'}
-            </Text>
-            <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]}>{user?.phone}</Text>
-            <View style={{ flexDirection: 'row', gap: Spacing.xs, marginTop: Spacing.xs }}>
-              <Pill label={user?.role ?? 'resident'} bg={Palette.primaryContainer} color={Palette.primaryDeep} />
-              <Pill label={user?.flat ?? '—'} bg={Palette.surfaceContainerHigh} color={Palette.onSurface} />
+        {/* Identity */}
+        <Card variant="outlined" padding="lg">
+          <View style={styles.identityRow}>
+            <Avatar name={user?.name ?? 'You'} color={user?.avatarColor} size={56} />
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={[Type.titleLg, { color: Palette.onSurface }]} numberOfLines={1}>
+                {user?.name ?? 'Resident'}
+              </Text>
+              <Text style={[Type.bodySm, { color: Palette.onSurfaceMuted }]}>{user?.phone}</Text>
+              <View style={styles.pillRow}>
+                <Pill label={user?.role ?? 'resident'} bg={Palette.primaryContainer} color={Palette.onPrimaryContainer} />
+                <Pill label={user?.flat ?? '—'} bg={Palette.surfaceContainerLow} color={Palette.onSurface} />
+              </View>
             </View>
           </View>
         </Card>
 
-        <Card padding="sm" style={{ paddingVertical: 0 }}>
+        {/* Settings rows */}
+        <Card variant="outlined" padding="xs" style={{ paddingVertical: 0, paddingHorizontal: 0 }}>
           {rows.map((r, i) => (
             <Pressable
               key={r.label}
@@ -62,37 +60,19 @@ export default function Profile() {
                 pressed && { backgroundColor: Palette.surfaceContainerLow },
               ]}>
               <View style={[styles.rowIcon, r.danger && { backgroundColor: Palette.errorContainer }]}>
-                <Feather name={r.icon} size={18} color={r.danger ? Palette.error : Palette.primary} />
+                <Feather name={r.icon} size={17} color={r.danger ? Palette.error : Palette.onSurface} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={[Type.titleMd, { color: r.danger ? Palette.error : Palette.onSurface, fontSize: 15 }]}>{r.label}</Text>
+                <Text style={[Type.titleSm, { color: r.danger ? Palette.error : Palette.onSurface }]}>
+                  {r.label}
+                </Text>
                 {r.hint ? (
-                  <Text style={[Type.labelSm, { color: Palette.onSurfaceVariant }]}>{r.hint}</Text>
+                  <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted, marginTop: 2 }]}>{r.hint}</Text>
                 ) : null}
               </View>
-              <Feather name="chevron-right" size={20} color={Palette.outline} />
+              <Feather name="chevron-right" size={18} color={Palette.outline} />
             </Pressable>
           ))}
-        </Card>
-
-        <Card padding="lg" style={{ gap: Spacing.md }}>
-          <Text style={[Type.titleMd, { color: Palette.onSurface }]}>Switch role (demo)</Text>
-          <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
-            {ROLES.map((r) => {
-              const active = r.role === user?.role;
-              return (
-                <Pressable
-                  key={r.role}
-                  onPress={() => {
-                    switchRole(r.role);
-                    router.replace(homeRouteForRole(r.role) as any);
-                  }}
-                  style={[styles.roleChip, active && styles.roleChipActive]}>
-                  <Text style={[Type.labelMd, { color: active ? '#fff' : Palette.onSurface }]}>{r.label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
         </Card>
 
         <Pressable
@@ -101,12 +81,12 @@ export default function Profile() {
             router.replace('/(auth)/login');
           }}
           style={({ pressed }) => [styles.signOut, pressed && { opacity: 0.6 }]}>
-          <Feather name="log-out" size={18} color={Palette.error} />
+          <Feather name="log-out" size={16} color={Palette.error} />
           <Text style={[Type.labelMd, { color: Palette.error }]}>Sign out</Text>
         </Pressable>
 
-        <Text style={[Type.labelSm, { color: Palette.outline, textAlign: 'center', marginTop: Spacing.lg }]}>
-          MySociety · v1.0.0 (demo)
+        <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted, textAlign: 'center', marginTop: Spacing.md }]}>
+          Civic Shield · v1.0.0 (demo)
         </Text>
 
         <View style={{ height: Spacing.xl }} />
@@ -117,13 +97,31 @@ export default function Profile() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.surface },
-  scroll: { padding: Spacing.lg, gap: Spacing.md, paddingBottom: Spacing.xxxl },
-  header: { gap: 4, marginBottom: Spacing.xs },
-  identityCard: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg },
-  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, padding: Spacing.md },
-  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Palette.surfaceContainerHigh },
-  rowIcon: { width: 36, height: 36, borderRadius: Radius.md, backgroundColor: Palette.primaryContainer, alignItems: 'center', justifyContent: 'center' },
-  signOut: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: Spacing.sm, paddingVertical: Spacing.lg, marginTop: Spacing.sm },
-  roleChip: { flex: 1, paddingVertical: Spacing.md, alignItems: 'center', borderRadius: Radius.md, backgroundColor: Palette.surfaceContainerLow },
-  roleChipActive: { backgroundColor: Palette.primary },
+  scroll: {
+    paddingHorizontal: Layout.pageGutter,
+    paddingTop: Layout.pageTop,
+    paddingBottom: Layout.scrollBottom,
+    gap: Spacing.lg,
+  },
+  header: { marginBottom: Spacing.sm },
+  identityRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.lg },
+  pillRow: { flexDirection: 'row', gap: Spacing.xs, marginTop: 6 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },
+  rowBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Palette.border },
+  rowIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.md,
+    backgroundColor: Palette.surfaceContainerLow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  signOut: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.lg,
+    marginTop: Spacing.lg,
+  },
 });

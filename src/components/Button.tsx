@@ -33,6 +33,7 @@ export function Button({
   style,
 }: ButtonProps) {
   const { container, text } = useButtonStyles(variant, size, !!disabled);
+  const minHeight = size === 'sm' ? 40 : size === 'lg' ? 56 : 48;
 
   return (
     <Pressable
@@ -43,9 +44,10 @@ export function Button({
       }}
       style={({ pressed }) => [
         styles.base,
+        { minHeight },
         container,
         fullWidth && styles.fullWidth,
-        pressed && !disabled && { transform: [{ scale: 0.98 }], opacity: 0.92 },
+        pressed && !disabled && { transform: [{ scale: 0.985 }], opacity: 0.94 },
         style,
       ]}
       accessibilityRole="button"
@@ -54,9 +56,9 @@ export function Button({
         <ActivityIndicator color={text.color as string} />
       ) : (
         <View style={styles.content}>
-          {icon && iconPosition === 'left' && <Feather name={icon} size={size === 'sm' ? 16 : 18} color={text.color as string} />}
+          {icon && iconPosition === 'left' && <Feather name={icon} size={size === 'sm' ? 15 : 17} color={text.color as string} />}
           <Text style={[Type.labelMd, text, size === 'lg' && { fontSize: 16 }]}>{label}</Text>
-          {icon && iconPosition === 'right' && <Feather name={icon} size={size === 'sm' ? 16 : 18} color={text.color as string} />}
+          {icon && iconPosition === 'right' && <Feather name={icon} size={size === 'sm' ? 15 : 17} color={text.color as string} />}
         </View>
       )}
     </Pressable>
@@ -65,29 +67,33 @@ export function Button({
 
 function useButtonStyles(variant: Variant, size: Size, disabled: boolean) {
   const padV = size === 'sm' ? 8 : size === 'lg' ? 16 : 12;
-  const padH = size === 'sm' ? 14 : size === 'lg' ? 22 : 18;
-
+  const padH = size === 'sm' ? 14 : size === 'lg' ? 24 : 18;
   const sizeStyle: ViewStyle = { paddingVertical: padV, paddingHorizontal: padH };
 
   switch (variant) {
     case 'primary':
       return {
-        container: { ...sizeStyle, backgroundColor: disabled ? Palette.surfaceContainerHighest : Palette.primary },
+        container: { ...sizeStyle, backgroundColor: disabled ? Palette.surfaceContainerHigh : Palette.primary },
         text: { color: disabled ? Palette.outline : Palette.onPrimary },
       };
     case 'secondary':
       return {
-        container: { ...sizeStyle, backgroundColor: disabled ? Palette.surfaceContainerHighest : Palette.secondary },
-        text: { color: disabled ? Palette.outline : Palette.onSecondary },
+        container: { ...sizeStyle, backgroundColor: disabled ? Palette.surfaceContainerHigh : Palette.onSurface },
+        text: { color: disabled ? Palette.outline : '#FFFFFF' },
       };
     case 'danger':
       return {
-        container: { ...sizeStyle, backgroundColor: disabled ? Palette.surfaceContainerHighest : Palette.error },
+        container: { ...sizeStyle, backgroundColor: disabled ? Palette.surfaceContainerHigh : Palette.error },
         text: { color: Palette.onError },
       };
     case 'outline':
       return {
-        container: { ...sizeStyle, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: Palette.outlineVariant },
+        container: {
+          ...sizeStyle,
+          backgroundColor: Palette.surfaceContainerLowest,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: Palette.borderStrong,
+        },
         text: { color: Palette.onSurface },
       };
     case 'ghost':
@@ -104,7 +110,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
   },
   content: {
     flexDirection: 'row',

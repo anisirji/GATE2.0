@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { Pill } from '@/components/StatusBadge';
-import { Palette, Radius, Spacing, Type } from '@/constants/theme';
+import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { MOCK_ENTRY_LOG, type EntryLog } from '@/data/mockData';
 
 type Filter = 'all' | EntryLog['status'];
@@ -52,7 +52,7 @@ export default function AdminVisitors() {
         </View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterRow}>
         {FILTERS.map((f) => {
           const active = f.key === filter;
           return (
@@ -117,12 +117,13 @@ function pillFg(s: EntryLog['status']) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.surface },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm, paddingBottom: Spacing.md, gap: Spacing.md },
-  iconBtn: { width: 44, height: 44, borderRadius: Radius.pill, backgroundColor: Palette.surfaceContainerLow, alignItems: 'center', justifyContent: 'center' },
-  summaryRow: { flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
-  summaryCard: { flex: 1, padding: Spacing.md, borderRadius: Radius.lg, backgroundColor: Palette.surfaceContainerLow, gap: 2 },
-  filterRow: { paddingHorizontal: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.md },
-  chip: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.pill, backgroundColor: Palette.surfaceContainerLow },
-  chipActive: { backgroundColor: Palette.tertiary },
-  scroll: { paddingHorizontal: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.xxxl },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: Layout.pageGutter, paddingTop: Layout.pageTop, paddingBottom: Spacing.lg, gap: Spacing.md },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.surfaceContainerLowest, borderWidth: StyleSheet.hairlineWidth, borderColor: Palette.border, alignItems: 'center', justifyContent: 'center' },
+  summaryRow: { flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Layout.pageGutter, paddingBottom: Spacing.lg },
+  summaryCard: { flex: 1, padding: Spacing.lg, borderRadius: Radius.lg, backgroundColor: Palette.surfaceContainerLowest, borderWidth: StyleSheet.hairlineWidth, borderColor: Palette.border, gap: 4 },
+  filterScroll: { flexGrow: 0, flexShrink: 0 },
+  filterRow: { paddingHorizontal: Layout.pageGutter, gap: Spacing.sm, paddingBottom: Spacing.lg },
+  chip: { paddingHorizontal: Spacing.lg, paddingVertical: 8, borderRadius: Radius.pill, backgroundColor: Palette.surfaceContainerLowest, borderWidth: StyleSheet.hairlineWidth, borderColor: Palette.border },
+  chipActive: { backgroundColor: Palette.onSurface, borderColor: Palette.onSurface },
+  scroll: { paddingHorizontal: Layout.pageGutter, gap: Spacing.sm, paddingBottom: Layout.scrollBottom },
 });

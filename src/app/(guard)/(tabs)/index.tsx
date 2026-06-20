@@ -4,159 +4,206 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
-import { Card } from '@/components/Card';
-import { Pill, StatusBadge } from '@/components/StatusBadge';
-import { Palette, Radius, Spacing, Type } from '@/constants/theme';
-import { GUARD_SHIFT_STATS, MOCK_ENTRY_LOG, MOCK_VISITORS } from '@/data/mockData';
+import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
+import { MOCK_ENTRY_LOG } from '@/data/mockData';
 import { useAuth } from '@/lib/auth';
 
-const TONE_BG: Record<string, string> = {
-  primary: Palette.primaryContainer,
-  success: Palette.statusApprovedBg,
-  warning: Palette.warningContainer,
-  neutral: Palette.surfaceContainerHigh,
+type Action = {
+  key: string;
+  label: string;
+  hint: string;
+  icon: keyof typeof Feather.glyphMap;
+  route: any;
+  primary?: boolean;
+  danger?: boolean;
 };
-const TONE_FG: Record<string, string> = {
-  primary: Palette.primary,
-  success: Palette.statusApprovedText,
-  warning: Palette.warning,
-  neutral: Palette.onSurfaceVariant,
-};
+
+const ACTIONS: Action[] = [
+  { key: 'scan', label: 'Scan QR', hint: 'Camera', icon: 'maximize', route: '/(guard)/(tabs)/scan', primary: true },
+  { key: 'manual', label: 'Manual entry', hint: 'No pass', icon: 'edit-3', route: { pathname: '/(guard)/visitor-details', params: { id: 'manual' } } },
+  { key: 'log', label: 'Visitor log', hint: 'Today', icon: 'list', route: '/(guard)/(tabs)/entries' },
+  { key: 'sos', label: 'Emergency', hint: 'SOS', icon: 'alert-triangle', route: '/(guard)/(tabs)/notices', danger: true },
+];
 
 export default function GuardDashboard() {
   const { user } = useAuth();
   const router = useRouter();
-  const expected = MOCK_VISITORS.filter((v) => v.status === 'expected');
-  const recentInside = MOCK_ENTRY_LOG.filter((e) => e.status === 'inside');
+
+  const insideNow = MOCK_ENTRY_LOG.filter((e) => e.status === 'inside');
+  const previewAvatars = insideNow.slice(0, 4);
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.greeting}>
+        {/* Header — guard ID + shift */}
+        <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <Text style={[Type.labelMd, { color: Palette.onSurfaceVariant }]}>On shift</Text>
-            <Text style={[Type.headlineLgMobile, { color: Palette.onSurface }]}>{user?.name.split(' ')[0] ?? 'Guard'}</Text>
-            <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]}>{user?.designation ?? 'Day shift'} · {user?.society}</Text>
+            <View style={styles.onShift}>
+              <View style={styles.liveDot} />
+              <Text style={[Type.labelSm, { color: Palette.statusApprovedText }]}>On shift</Text>
+            </View>
+            <Text style={[Type.headlineLgMobile, { color: Palette.onSurface, marginTop: 6 }]} numberOfLines={1}>
+              {user?.name.split(' ')[0] ?? 'Guard'}
+            </Text>
+            <Text style={[Type.bodySm, { color: Palette.onSurfaceMuted, marginTop: 2 }]} numberOfLines={1}>
+              {user?.designation ?? 'Day shift'} · 08:00 to 20:00
+            </Text>
           </View>
-          <Avatar name={user?.name ?? 'Guard'} color={user?.avatarColor} size={48} />
+          <Avatar name={user?.name ?? 'Guard'} color={user?.avatarColor} size={44} ring />
         </View>
 
-        {/* Big scan CTA */}
-        <Pressable onPress={() => router.push('/(guard)/(tabs)/scan')}>
-          <Card padding="xl" style={styles.scanCta} elevated>
-            <View style={styles.scanIcon}>
-              <Feather name="maximize" size={36} color="#fff" />
-            </View>
-            <View style={{ flex: 1, gap: Spacing.xs }}>
-              <Text style={[Type.titleLg, { color: '#fff' }]}>Scan visitor pass</Text>
-              <Text style={[Type.bodySm, { color: '#fff', opacity: 0.85 }]}>Tap to open the camera and validate a QR.</Text>
-            </View>
-            <Feather name="arrow-right" size={22} color="#fff" />
-          </Card>
-        </Pressable>
-
-        {/* Stats grid */}
-        <View style={styles.statsGrid}>
-          {GUARD_SHIFT_STATS.map((s) => (
-            <View key={s.label} style={[styles.statCard, { backgroundColor: TONE_BG[s.tone] }]}>
-              <Feather name={s.icon as any} size={18} color={TONE_FG[s.tone]} />
-              <Text style={[Type.headlineMd, { color: Palette.onSurface, marginTop: Spacing.xs }]}>{s.value}</Text>
-              <Text style={[Type.labelSm, { color: Palette.onSurfaceVariant }]}>{s.label}</Text>
-            </View>
+        {/* Four big action tiles */}
+        <View style={styles.grid}>
+          {ACTIONS.map((a) => (
+            <ActionTile key={a.key} action={a} onPress={() => router.push(a.route)} />
           ))}
         </View>
 
-        {/* Expected visitors */}
-        <SectionHeader title="Expected" actionLabel="All" onAction={() => router.push('/(guard)/(tabs)/entries')} />
-        {expected.length === 0 ? (
-          <EmptyState icon="user-check" text="Nobody pre-approved right now." />
-        ) : (
-          expected.map((v) => (
-            <Pressable
-              key={v.id}
-              onPress={() => router.push({ pathname: '/(guard)/visitor-details', params: { id: v.id } })}>
-              <Card padding="md" accentColor={Palette.warning}>
-                <View style={styles.visitorRow}>
-                  <Avatar name={v.name} color={Palette.warning} size={42} />
-                  <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={[Type.titleMd, { color: Palette.onSurface }]} numberOfLines={1}>
-                      {v.name}
-                    </Text>
-                    <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]} numberOfLines={1}>
-                      Flat {v.hostFlat} · {v.arrivalTime}
-                    </Text>
-                  </View>
-                  <Feather name="chevron-right" size={20} color={Palette.outline} />
-                </View>
-              </Card>
-            </Pressable>
-          ))
-        )}
+        {/* Currently inside society — one situational-awareness card */}
+        <Pressable
+          onPress={() => router.push('/(guard)/(tabs)/entries')}
+          style={({ pressed }) => [styles.insideCard, pressed && { transform: [{ scale: 0.995 }] }]}>
+          <View style={{ flex: 1 }}>
+            <Text style={[Type.eyebrow, { color: Palette.onSurfaceMuted }]}>Inside society now</Text>
+            <View style={styles.insideRow}>
+              <Text style={[Type.numLg, { color: Palette.onSurface }]}>
+                {String(insideNow.length).padStart(2, '0')}
+              </Text>
+              <Text style={[Type.bodySm, { color: Palette.onSurfaceMuted }]}>
+                visitor{insideNow.length === 1 ? '' : 's'}
+              </Text>
+            </View>
+          </View>
 
-        {/* Currently inside */}
-        <SectionHeader title="Inside society" />
-        {recentInside.map((e) => (
-          <Card key={e.id} padding="md" accentColor={Palette.success}>
-            <View style={styles.visitorRow}>
-              <Avatar name={e.visitorName} color={Palette.success} size={42} />
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={[Type.titleMd, { color: Palette.onSurface }]} numberOfLines={1}>
-                  {e.visitorName}
-                </Text>
-                <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]}>
-                  Flat {e.flat} · in at {e.inAt.replace('Today, ', '')}
+          <View style={styles.avatarStack}>
+            {previewAvatars.map((e, i) => (
+              <View
+                key={e.id}
+                style={[
+                  styles.stackedAvatar,
+                  { marginLeft: i === 0 ? 0 : -10, zIndex: previewAvatars.length - i },
+                ]}>
+                <Avatar name={e.visitorName} size={32} ring />
+              </View>
+            ))}
+            {insideNow.length > previewAvatars.length ? (
+              <View style={[styles.stackedAvatar, styles.moreBubble, { marginLeft: -10 }]}>
+                <Text style={[Type.labelSm, { color: Palette.onSurface }]}>
+                  +{insideNow.length - previewAvatars.length}
                 </Text>
               </View>
-              <Pill label="Inside" bg={Palette.statusApprovedBg} color={Palette.statusApprovedText} />
-            </View>
-          </Card>
-        ))}
-
-        <View style={{ height: Spacing.xl }} />
+            ) : null}
+            <Feather name="chevron-right" size={18} color={Palette.outline} style={{ marginLeft: Spacing.sm }} />
+          </View>
+        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function SectionHeader({ title, actionLabel, onAction }: { title: string; actionLabel?: string; onAction?: () => void }) {
+function ActionTile({ action, onPress }: { action: Action; onPress: () => void }) {
+  const primary = action.primary;
+  const danger = action.danger;
+  const bg = primary ? Palette.onSurface : Palette.surfaceContainerLowest;
+  const ink = primary ? '#FFFFFF' : Palette.onSurface;
+  const hint = primary ? 'rgba(255,255,255,0.65)' : Palette.onSurfaceMuted;
+  const iconColor = danger ? Palette.error : primary ? '#FFFFFF' : Palette.onSurface;
+  const iconBg = primary
+    ? 'rgba(255,255,255,0.12)'
+    : danger
+      ? Palette.errorContainer
+      : Palette.surfaceContainerLow;
+
   return (
-    <View style={styles.sectionHead}>
-      <Text style={[Type.titleLg, { color: Palette.onSurface }]}>{title}</Text>
-      {actionLabel ? (
-        <Pressable onPress={onAction} hitSlop={8}>
-          <Text style={[Type.labelMd, { color: Palette.secondary }]}>{actionLabel}</Text>
-        </Pressable>
-      ) : null}
-    </View>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.tile,
+        { backgroundColor: bg },
+        !primary && styles.tileBorder,
+        pressed && { transform: [{ scale: 0.99 }] },
+      ]}>
+      <View style={[styles.tileIcon, { backgroundColor: iconBg }]}>
+        <Feather name={action.icon} size={26} color={iconColor} />
+      </View>
+      <View style={styles.tileText}>
+        <Text style={[Type.titleMd, { color: danger ? Palette.error : ink }]} numberOfLines={1}>
+          {action.label}
+        </Text>
+        <Text style={[Type.labelSm, { color: danger ? Palette.error : hint, marginTop: 2 }]} numberOfLines={1}>
+          {action.hint}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 
-function EmptyState({ icon, text }: { icon: keyof typeof Feather.glyphMap; text: string }) {
-  return (
-    <View style={styles.empty}>
-      <Feather name={icon} size={28} color={Palette.outline} />
-      <Text style={[Type.bodyMd, { color: Palette.onSurfaceVariant }]}>{text}</Text>
-    </View>
-  );
-}
-
-// Suppress unused warning
-const _u = StatusBadge;
+const TILE_SIZE = '48%';
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.surface },
-  scroll: { padding: Spacing.lg, gap: Spacing.md, paddingBottom: Spacing.xxxl },
-  greeting: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.xs },
-  scanCta: {
+  scroll: {
+    paddingHorizontal: Layout.pageGutter,
+    paddingTop: Layout.pageTop,
+    paddingBottom: Layout.scrollBottom,
+  },
+
+  header: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, marginBottom: Spacing.xxl },
+  onShift: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Palette.statusApprovedText },
+
+  // 2x2 grid of big action tiles
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  tile: {
+    width: TILE_SIZE,
+    flexGrow: 1,
+    aspectRatio: 1,
+    borderRadius: Radius.xl,
+    padding: Spacing.xl,
+    justifyContent: 'space-between',
+  },
+  tileBorder: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+  },
+  tileIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: Radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tileText: { gap: 0 },
+
+  // "Inside society now" card
+  insideCard: {
+    marginTop: Spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.lg,
-    backgroundColor: Palette.secondary,
+    padding: Spacing.lg,
+    borderRadius: Radius.xl,
+    backgroundColor: Palette.surfaceContainerLowest,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
   },
-  scanIcon: { width: 64, height: 64, borderRadius: Radius.lg, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center' },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
-  statCard: { width: '48%', padding: Spacing.md, borderRadius: Radius.lg, gap: 2 },
-  sectionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.md, marginBottom: Spacing.xs },
-  visitorRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  empty: { padding: Spacing.xl, alignItems: 'center', gap: Spacing.sm, backgroundColor: Palette.surfaceContainerLow, borderRadius: Radius.lg },
+  insideRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 6 },
+  avatarStack: { flexDirection: 'row', alignItems: 'center' },
+  stackedAvatar: {
+    borderWidth: 2,
+    borderColor: Palette.surfaceContainerLowest,
+    borderRadius: 18,
+  },
+  moreBubble: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Palette.surfaceContainer,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

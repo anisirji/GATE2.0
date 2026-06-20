@@ -19,8 +19,8 @@ type AuthState = {
   pendingPhone: string | null;
   setPendingPhone: (phone: string) => void;
   verifyOtp: (otp: string) => boolean;
-  signInAs: (role: Role) => void;
-  switchRole: (role: Role) => void;
+  /** Sign in using whatever role the pending phone resolves to. */
+  signInWithPendingPhone: () => Role;
   signOut: () => void;
 };
 
@@ -35,7 +35,7 @@ const DEMO_USERS: Record<Role, CurrentUser> = {
     block: 'Tower A',
     society: 'Lakeview Heights',
     role: 'resident',
-    avatarColor: '#1e40af',
+    avatarColor: '#3D4EFF',
   },
   guard: {
     id: 'u_grd_001',
@@ -43,7 +43,7 @@ const DEMO_USERS: Record<Role, CurrentUser> = {
     phone: '+91 91234 56789',
     society: 'Lakeview Heights',
     role: 'guard',
-    avatarColor: '#006a61',
+    avatarColor: '#0A8F82',
     designation: 'Gate 1 · Day shift',
   },
   admin: {
@@ -52,10 +52,30 @@ const DEMO_USERS: Record<Role, CurrentUser> = {
     phone: '+91 90000 11122',
     society: 'Lakeview Heights',
     role: 'admin',
-    avatarColor: '#f59e0b',
+    avatarColor: '#B8740A',
     designation: 'Society Secretary',
   },
 };
+
+/**
+ * Phone → role registry. Each registered phone resolves to a specific role.
+ * In production this is a backend lookup. For the demo we ship three test numbers.
+ * Anything else falls back to resident.
+ */
+const PHONE_ROLES: Record<string, Role> = {
+  '9876543210': 'resident',
+  '9123456789': 'guard',
+  '9000011122': 'admin',
+};
+
+function normalizePhone(input: string): string {
+  return input.replace(/\D/g, '').slice(-10);
+}
+
+export function phoneToRole(input: string | null | undefined): Role {
+  if (!input) return 'resident';
+  return PHONE_ROLES[normalizePhone(input)] ?? 'resident';
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<CurrentUser | null>(null);
@@ -63,18 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyOtp = useCallback((otp: string) => /^\d{4,6}$/.test(otp), []);
 
-  const signInAs = useCallback(
-    (role: Role) => {
-      const u = DEMO_USERS[role];
-      setUser({ ...u, phone: pendingPhone ?? u.phone });
-    },
-    [pendingPhone]
-  );
-
-  const switchRole = useCallback((role: Role) => {
+  const signInWithPendingPhone = useCallback((): Role => {
+    const role = phoneToRole(pendingPhone);
     const u = DEMO_USERS[role];
-    setUser((prev) => ({ ...u, phone: prev?.phone ?? u.phone }));
-  }, []);
+    setUser({ ...u, phone: pendingPhone ?? u.phone });
+    return role;
+  }, [pendingPhone]);
 
   const signOut = useCallback(() => {
     setUser(null);
@@ -82,8 +96,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthState>(
-    () => ({ user, pendingPhone, setPendingPhone, verifyOtp, signInAs, switchRole, signOut }),
-    [user, pendingPhone, verifyOtp, signInAs, switchRole, signOut]
+    () => ({
+      user,
+      pendingPhone,
+      setPendingPhone,
+      verifyOtp,
+      signInWithPendingPhone,
+      signOut,
+    }),
+    [user, pendingPhone, verifyOtp, signInWithPendingPhone, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { Pill } from '@/components/StatusBadge';
-import { Palette, Radius, Spacing, Type } from '@/constants/theme';
+import { Eyebrow, SectionHeader } from '@/components/Section';
+import { Layout, Palette, Radius, Shadow, Spacing, Type } from '@/constants/theme';
 import { MOCK_PAYMENTS, type Payment } from '@/data/mockData';
 
 export default function Payments() {
@@ -18,35 +18,43 @@ export default function Payments() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[Type.headlineLgMobile, { color: Palette.onSurface }]}>Payments</Text>
-          <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]}>Dues, receipts, and history in one place.</Text>
+          <Text style={[Type.bodySm, { color: Palette.onSurfaceMuted, marginTop: 4 }]}>
+            Dues, receipts, and history.
+          </Text>
         </View>
 
-        <Card padding="xl" style={styles.summary} elevated>
-          <View>
-            <Text style={[Type.labelMd, { color: Palette.onPrimary, opacity: 0.85 }]}>Total outstanding</Text>
-            <Text style={[Type.displayLg, { color: Palette.onPrimary, fontSize: 40, lineHeight: 48 }]}>₹{dueTotal.toLocaleString('en-IN')}</Text>
-            <Text style={[Type.bodySm, { color: Palette.onPrimary, opacity: 0.8, marginTop: Spacing.xs }]}>
-              {pending.length} bill{pending.length === 1 ? '' : 's'} due
-            </Text>
+        {/* Outstanding hero. Single committed primary surface. */}
+        <View style={[styles.summary, Shadow.hero]}>
+          <Eyebrow color="rgba(255,255,255,0.7)">Total outstanding</Eyebrow>
+          <Text style={[Type.numXl, { color: Palette.onPrimary, marginTop: Spacing.sm }]}>
+            ₹{dueTotal.toLocaleString('en-IN')}
+          </Text>
+          <Text style={[Type.bodySm, { color: 'rgba(255,255,255,0.78)', marginTop: 4 }]}>
+            {pending.length} bill{pending.length === 1 ? '' : 's'} due
+          </Text>
+          <View style={{ marginTop: Spacing.lg }}>
+            <Button label="Pay all" icon="zap" variant="secondary" size="md" fullWidth={false} />
           </View>
-          <Button label="Pay all" icon="zap" variant="secondary" size="sm" fullWidth={false} style={{ alignSelf: 'flex-start' }} />
-        </Card>
+        </View>
 
-        <SectionTitle text="Pending" />
-        {pending.map((p) => (
-          <PaymentItem key={p.id} payment={p} />
-        ))}
-        {pending.length === 0 ? (
-          <View style={styles.empty}>
-            <Feather name="check-circle" size={28} color={Palette.success} />
-            <Text style={[Type.bodyMd, { color: Palette.onSurfaceVariant }]}>You're all caught up.</Text>
-          </View>
-        ) : null}
+        <SectionHeader title="Pending" />
+        <View style={{ gap: Spacing.sm }}>
+          {pending.length === 0 ? (
+            <View style={styles.empty}>
+              <Feather name="check-circle" size={22} color={Palette.success} />
+              <Text style={[Type.bodyMd, { color: Palette.onSurfaceVariant }]}>You're all caught up.</Text>
+            </View>
+          ) : (
+            pending.map((p) => <PaymentItem key={p.id} payment={p} />)
+          )}
+        </View>
 
-        <SectionTitle text="History" />
-        {history.map((p) => (
-          <PaymentItem key={p.id} payment={p} />
-        ))}
+        <SectionHeader title="History" />
+        <View style={{ gap: Spacing.sm }}>
+          {history.map((p) => (
+            <PaymentItem key={p.id} payment={p} />
+          ))}
+        </View>
 
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
@@ -54,21 +62,19 @@ export default function Payments() {
   );
 }
 
-function SectionTitle({ text }: { text: string }) {
-  return (
-    <Text style={[Type.titleLg, { color: Palette.onSurface, marginTop: Spacing.md, marginBottom: Spacing.xs }]}>{text}</Text>
-  );
-}
-
 function PaymentItem({ payment }: { payment: Payment }) {
   const isPaid = payment.status === 'paid';
   return (
-    <Card padding="md" style={styles.itemCard}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.md }}>
-        <View style={[styles.itemIcon, { backgroundColor: isPaid ? Palette.successContainer : Palette.warningContainer }]}>
+    <Card variant="outlined" padding="md">
+      <View style={styles.row}>
+        <View
+          style={[
+            styles.itemIcon,
+            { backgroundColor: isPaid ? Palette.successContainer : Palette.warningContainer },
+          ]}>
           <Feather
             name={isPaid ? 'check' : 'clock'}
-            size={20}
+            size={17}
             color={isPaid ? Palette.success : Palette.warning}
           />
         </View>
@@ -76,16 +82,20 @@ function PaymentItem({ payment }: { payment: Payment }) {
           <Text style={[Type.titleMd, { color: Palette.onSurface }]} numberOfLines={1}>
             {payment.label}
           </Text>
-          <Text style={[Type.labelSm, { color: Palette.onSurfaceVariant }]}>
+          <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted }]}>
             {isPaid ? 'Paid' : `Due ${formatDate(payment.dueDate)}`}
           </Text>
         </View>
-        <View style={{ alignItems: 'flex-end', gap: Spacing.xs }}>
-          <Text style={[Type.titleMd, { color: Palette.onSurface }]}>₹{payment.amount.toLocaleString('en-IN')}</Text>
+        <View style={{ alignItems: 'flex-end', gap: 6 }}>
+          <Text style={[Type.titleMd, { color: Palette.onSurface }]}>
+            ₹{payment.amount.toLocaleString('en-IN')}
+          </Text>
           {isPaid ? (
-            <Pill label="Paid" bg={Palette.statusApprovedBg} color={Palette.statusApprovedText} />
+            <Text style={[Type.labelSm, { color: Palette.statusApprovedText }]}>Receipt</Text>
           ) : (
-            <Pill label="Pay" bg={Palette.primary} color={Palette.onPrimary} />
+            <View style={styles.payChip}>
+              <Text style={[Type.labelSm, { color: Palette.onPrimary }]}>Pay</Text>
+            </View>
           )}
         </View>
       </View>
@@ -104,13 +114,40 @@ function formatDate(iso: string) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.surface },
-  scroll: { padding: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.xxxl },
-  header: { gap: 4, marginBottom: Spacing.sm },
+  scroll: {
+    paddingHorizontal: Layout.pageGutter,
+    paddingTop: Layout.pageTop,
+    paddingBottom: Layout.scrollBottom,
+  },
+  header: { marginBottom: Spacing.xl },
+
   summary: {
     backgroundColor: Palette.primary,
-    gap: Spacing.lg,
+    borderRadius: Radius.xl,
+    padding: Spacing.xl,
   },
-  itemCard: {},
-  itemIcon: { width: 44, height: 44, borderRadius: Radius.md, alignItems: 'center', justifyContent: 'center' },
-  empty: { padding: Spacing.xl, alignItems: 'center', gap: Spacing.sm, backgroundColor: Palette.surfaceContainerLow, borderRadius: Radius.lg },
+
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  itemIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  payChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.primary,
+  },
+  empty: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    paddingVertical: Spacing.xl,
+    backgroundColor: Palette.surfaceContainerLow,
+    borderRadius: Radius.lg,
+  },
 });

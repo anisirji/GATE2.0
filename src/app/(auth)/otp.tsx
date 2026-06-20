@@ -5,13 +5,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { Palette, Radius, Spacing, Type } from '@/constants/theme';
-import { useAuth } from '@/lib/auth';
+import { homeRouteForRole, useAuth } from '@/lib/auth';
 
 const LENGTH = 6;
 
 export default function OtpScreen() {
   const router = useRouter();
-  const { pendingPhone, verifyOtp } = useAuth();
+  const { pendingPhone, verifyOtp, signInWithPendingPhone } = useAuth();
   const [digits, setDigits] = useState<string[]>(Array(LENGTH).fill(''));
   const inputs = useRef<Array<TextInput | null>>([]);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +57,8 @@ export default function OtpScreen() {
         setError('Invalid code. Try again.');
         return;
       }
-      router.replace('/(auth)/role-select');
+      const role = signInWithPendingPhone();
+      router.replace(homeRouteForRole(role) as any);
     }, 600);
   };
 

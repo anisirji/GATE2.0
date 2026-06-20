@@ -7,8 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/Avatar';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { Pill, StatusBadge } from '@/components/StatusBadge';
-import { Palette, Radius, Spacing, Type } from '@/constants/theme';
+import { StatusBadge } from '@/components/StatusBadge';
+import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { MOCK_VISITORS, type VisitorStatus } from '@/data/mockData';
 
 type FilterKey = 'all' | VisitorStatus;
@@ -34,10 +34,25 @@ export default function Visitors() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.header}>
         <Text style={[Type.headlineLgMobile, { color: Palette.onSurface }]}>Visitors</Text>
-        <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]}>Manage who's coming and who's been by.</Text>
+        <Text style={[Type.bodySm, { color: Palette.onSurfaceMuted, marginTop: 4 }]}>
+          Who's coming, who's been by.
+        </Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRow}>
+      {/* Actions */}
+      <View style={styles.actions}>
+        <Button label="Pre‑approve" icon="user-plus" size="sm" onPress={() => router.push('/(app)/guest-pass')} />
+        <Button
+          label="Generate QR"
+          icon="maximize"
+          size="sm"
+          variant="outline"
+          onPress={() => router.push('/(app)/qr-pass')}
+        />
+      </View>
+
+      {/* Filter row */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterRow}>
         {FILTERS.map((f) => {
           const active = f.key === filter;
           return (
@@ -45,90 +60,88 @@ export default function Visitors() {
               key={f.key}
               onPress={() => setFilter(f.key)}
               style={[styles.chip, active && styles.chipActive]}>
-              <Text style={[Type.labelMd, { color: active ? Palette.onPrimary : Palette.onSurface }]}>{f.label}</Text>
+              <Text
+                style={[
+                  Type.labelMd,
+                  { color: active ? Palette.onPrimary : Palette.onSurfaceVariant },
+                ]}>
+                {f.label}
+              </Text>
             </Pressable>
           );
         })}
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={{ flexDirection: 'row', gap: Spacing.sm }}>
-          <Button label="Pre-approve" icon="user-plus" onPress={() => router.push('/(app)/guest-pass')} />
-          <Button label="Generate QR" icon="maximize" variant="outline" onPress={() => router.push('/(app)/qr-pass')} />
-        </View>
-
-        {filtered.map((v) => (
-          <Card key={v.id} padding="md" accentColor={accentColorFor(v.status)}>
-            <View style={styles.row}>
-              <Avatar name={v.name} color={avatarColorFor(v.status)} size={44} />
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={[Type.titleMd, { color: Palette.onSurface }]} numberOfLines={1}>
-                  {v.name}
-                </Text>
-                <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]} numberOfLines={1}>
-                  {v.purpose}
-                </Text>
-                <Text style={[Type.labelSm, { color: Palette.outline }]}>{v.arrivalTime}</Text>
-              </View>
-              <StatusBadge status={v.status} />
-            </View>
-            {v.vehicleNo ? (
-              <View style={styles.metaRow}>
-                <Feather name="truck" size={14} color={Palette.onSurfaceVariant} />
-                <Text style={[Type.labelSm, { color: Palette.onSurfaceVariant }]}>{v.vehicleNo}</Text>
-              </View>
-            ) : null}
-          </Card>
-        ))}
-
         {filtered.length === 0 ? (
           <View style={styles.empty}>
-            <Feather name="inbox" size={28} color={Palette.outline} />
-            <Text style={[Type.bodyMd, { color: Palette.onSurfaceVariant }]}>No visitors here yet.</Text>
-            <Pill label="Tap pre-approve to invite one" bg={Palette.surfaceContainerLow} color={Palette.onSurfaceVariant} />
+            <Feather name="inbox" size={24} color={Palette.outline} />
+            <Text style={[Type.bodyMd, { color: Palette.onSurfaceVariant }]}>No visitors here.</Text>
+            <Text style={[Type.bodySm, { color: Palette.onSurfaceMuted }]}>Tap Pre‑approve to invite one.</Text>
           </View>
-        ) : null}
-
+        ) : (
+          filtered.map((v) => (
+            <Card key={v.id} variant="outlined" padding="md">
+              <View style={styles.row}>
+                <Avatar name={v.name} size={42} />
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={[Type.titleMd, { color: Palette.onSurface }]} numberOfLines={1}>
+                    {v.name}
+                  </Text>
+                  <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]} numberOfLines={1}>
+                    {v.purpose}
+                  </Text>
+                  <View style={styles.metaInline}>
+                    <Feather name="clock" size={11} color={Palette.onSurfaceMuted} />
+                    <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted }]}>{v.arrivalTime}</Text>
+                    {v.vehicleNo ? (
+                      <>
+                        <View style={styles.metaDot} />
+                        <Feather name="truck" size={11} color={Palette.onSurfaceMuted} />
+                        <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted }]}>{v.vehicleNo}</Text>
+                      </>
+                    ) : null}
+                  </View>
+                </View>
+                <StatusBadge status={v.status} />
+              </View>
+            </Card>
+          ))
+        )}
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function accentColorFor(status: VisitorStatus) {
-  switch (status) {
-    case 'expected':
-      return Palette.statusExpectedText;
-    case 'checked-in':
-      return Palette.statusApprovedText;
-    case 'denied':
-      return Palette.statusDeniedText;
-    default:
-      return Palette.outline;
-  }
-}
-
-function avatarColorFor(status: VisitorStatus) {
-  switch (status) {
-    case 'checked-in':
-      return Palette.success;
-    case 'denied':
-      return Palette.error;
-    case 'expected':
-      return Palette.warning;
-    default:
-      return Palette.outline;
-  }
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.surface },
-  header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.sm, paddingBottom: Spacing.md, gap: 4 },
-  filterRow: { paddingHorizontal: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.md },
-  chip: { paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: Radius.pill, backgroundColor: Palette.surfaceContainerLow },
-  chipActive: { backgroundColor: Palette.primary },
-  scroll: { paddingHorizontal: Spacing.lg, gap: Spacing.sm, paddingBottom: Spacing.xxxl },
+  header: {
+    paddingHorizontal: Layout.pageGutter,
+    paddingTop: Layout.pageTop,
+    paddingBottom: Spacing.xl,
+  },
+  actions: { flexDirection: 'row', gap: Spacing.sm, paddingHorizontal: Layout.pageGutter, marginBottom: Spacing.lg },
+  filterScroll: { flexGrow: 0, flexShrink: 0 },
+  filterRow: { paddingHorizontal: Layout.pageGutter, gap: Spacing.sm, paddingBottom: Spacing.lg },
+  chip: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 8,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.surfaceContainerLowest,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+  },
+  chipActive: { backgroundColor: Palette.onSurface, borderColor: Palette.onSurface },
+  scroll: { paddingHorizontal: Layout.pageGutter, gap: Spacing.sm, paddingBottom: Layout.scrollBottom },
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs, marginTop: Spacing.sm },
-  empty: { padding: Spacing.xl, alignItems: 'center', gap: Spacing.sm, backgroundColor: Palette.surfaceContainerLow, borderRadius: Radius.lg },
+  metaInline: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  metaDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: Palette.outlineVariant, marginHorizontal: 6 },
+  empty: {
+    padding: Spacing.xxl,
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Palette.surfaceContainerLow,
+    borderRadius: Radius.lg,
+  },
 });
