@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { Eyebrow, SectionHeader } from '@/components/Section';
+import { SocietyFooter } from '@/components/SocietyFooter';
 import { Pill } from '@/components/StatusBadge';
 import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { MOCK_COMPLAINTS, MOCK_ENTRY_LOG, MOCK_STAFF, SOCIETY_STATS } from '@/data/mockData';
@@ -165,7 +166,8 @@ export default function AdminDashboard() {
           ))}
         </View>
 
-        <View style={{ height: Spacing.xl }} />
+        {/* Decorative society scene footer */}
+        <SocietyFooter />
       </ScrollView>
     </SafeAreaView>
   );

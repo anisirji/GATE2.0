@@ -105,10 +105,10 @@ export type QuickAction = {
 };
 
 export const QUICK_ACTIONS: QuickAction[] = [
-  { id: 'qa1', label: 'New visitor pass', icon: 'qr-code', route: '/(app)/qr-pass', tone: 'primary' },
-  { id: 'qa2', label: 'Pre-approve guest', icon: 'user-plus', route: '/(app)/guest-pass', tone: 'secondary' },
+  { id: 'qa1', label: 'New pass', icon: 'qr-code', route: '/(app)/qr-pass', tone: 'primary' },
+  { id: 'qa2', label: 'Pre-approve', icon: 'user-plus', route: '/(app)/guest-pass', tone: 'secondary' },
   { id: 'qa3', label: 'Pay dues', icon: 'wallet', route: '/(app)/(tabs)/payments', tone: 'tertiary' },
-  { id: 'qa4', label: 'Raise complaint', icon: 'megaphone', route: '/(app)/(tabs)/notices', tone: 'neutral' },
+  { id: 'qa4', label: 'Complaint', icon: 'megaphone', route: '/(app)/(tabs)/notices', tone: 'neutral' },
 ];
 
 /* ---------- Guard data ---------- */

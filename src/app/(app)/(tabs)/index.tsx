@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { SectionHeader } from '@/components/Section';
+import { SocietyFooter } from '@/components/SocietyFooter';
 import { Pill, StatusBadge } from '@/components/StatusBadge';
 import { Layout, Palette, Radius, Shadow, Spacing, Type } from '@/constants/theme';
 import { MOCK_NOTICES, MOCK_PAYMENTS, MOCK_VISITORS, QUICK_ACTIONS } from '@/data/mockData';
@@ -192,7 +193,8 @@ export default function Dashboard() {
           </>
         ) : null}
 
-        <View style={{ height: Spacing.xxl }} />
+        {/* Decorative society scene footer */}
+        <SocietyFooter />
       </ScrollView>
     </SafeAreaView>
   );
@@ -282,17 +284,19 @@ const styles = StyleSheet.create({
   qrCell: { width: 7, height: 7, borderRadius: 1.5 },
 
   // Quick actions — quiet monochrome row, single tone
-  quickGrid: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.lg },
+  quickGrid: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.xl, marginBottom: Spacing.lg },
   quickItem: {
     flex: 1,
     alignItems: 'center',
     gap: Spacing.sm,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.lg,
     paddingHorizontal: 4,
     backgroundColor: Palette.surfaceContainerLowest,
     borderRadius: Radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Palette.border,
+    minHeight: 96,
+    justifyContent: 'center',
   },
   quickIcon: {
     width: 38,

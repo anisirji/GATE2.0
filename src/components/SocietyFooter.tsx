@@ -6,7 +6,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
-  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle, G, Line, Path, Rect } from 'react-native-svg';
@@ -15,43 +14,25 @@ import { Palette, Spacing, Type } from '@/constants/theme';
 
 /**
  * Decorative outlined society scene used as a footer on dashboards.
- * Inspired by Rapido's "#goRapido" watermark band — adapted to gate /
- * society context. Pure outline strokes, single pulsing dot at the gate.
+ * Pure outline strokes, with one cloud drifting slowly across the sky.
  */
 export function SocietyFooter({ width = 360 }: { width?: number }) {
   const stroke = Palette.outlineVariant;
   const inkLight = Palette.surfaceContainerHigh;
   const heroOpacity = 0.4;
 
-  // Pulse animation on the guard light at the gate.
-  const pulse = useSharedValue(0);
-  // Subtle drift on the cloud.
+  // Only animation: cloud drifts very slowly. Calm, ambient, not attention-grabbing.
   const cloudX = useSharedValue(0);
 
   useEffect(() => {
-    pulse.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 1100, easing: Easing.out(Easing.quad) }),
-        withTiming(0, { duration: 1100, easing: Easing.in(Easing.quad) })
-      ),
-      -1,
-      false
-    );
     cloudX.value = withRepeat(
-      withTiming(20, { duration: 9000, easing: Easing.inOut(Easing.quad) }),
+      withTiming(14, { duration: 12000, easing: Easing.inOut(Easing.quad) }),
       -1,
       true
     );
-    return () => {
-      cancelAnimation(pulse);
-      cancelAnimation(cloudX);
-    };
-  }, [pulse, cloudX]);
+    return () => cancelAnimation(cloudX);
+  }, [cloudX]);
 
-  const pulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 + pulse.value * 1.4 }],
-    opacity: 0.5 - pulse.value * 0.5,
-  }));
   const cloudStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: cloudX.value }],
   }));
@@ -143,11 +124,8 @@ export function SocietyFooter({ width = 360 }: { width?: number }) {
           {/* Guard figure — left of gate */}
           <G transform={`translate(${gateX - 92} ${groundY - 44})`}>
             <Circle cx={6} cy={6} r={5} />
-            {/* Cap brim */}
             <Line x1={1} y1={3} x2={11} y2={3} />
-            {/* Body */}
             <Path d="M 2 12 Q 6 24 10 12 L 10 26 L 2 26 Z" />
-            {/* Legs */}
             <Line x1={4} y1={26} x2={4} y2={36} />
             <Line x1={8} y1={26} x2={8} y2={36} />
           </G>
@@ -160,20 +138,19 @@ export function SocietyFooter({ width = 360 }: { width?: number }) {
             <Line x1={14} y1={6} x2={14} y2={18} />
           </G>
 
-          {/* Family — far right of gate */}
+          {/* Family */}
           <G transform={`translate(${gateX + 26} ${groundY - 38})`}>
             <Circle cx={4} cy={4} r={3} />
             <Path d="M 1 8 L 7 8 L 7 18 L 1 18 Z" />
             <Line x1={2} y1={18} x2={2} y2={26} />
             <Line x1={6} y1={18} x2={6} y2={26} />
-            {/* child */}
             <Circle cx={14} cy={10} r={2.5} />
             <Path d="M 11 13 L 17 13 L 17 20 L 11 20 Z" />
             <Line x1={12} y1={20} x2={12} y2={26} />
             <Line x1={16} y1={20} x2={16} y2={26} />
           </G>
 
-          {/* Drone / surveillance — top right */}
+          {/* Drone — top right */}
           <G transform={`translate(${width - 64} 18)`}>
             <Rect x={6} y={4} width={14} height={8} rx={2} />
             <Line x1={2} y1={4} x2={10} y2={4} />
@@ -194,35 +171,20 @@ export function SocietyFooter({ width = 360 }: { width?: number }) {
             <Line x1={3} y1={25} x2={14} y2={25} />
           </G>
 
-          {/* Tree, far left */}
+          {/* Trees */}
           <G transform={`translate(8 ${groundY - 32})`}>
             <Path d="M 0 30 Q -4 18 0 6 Q 4 -2 10 6 Q 14 18 10 30 Z" />
             <Line x1={5} y1={30} x2={5} y2={36} />
           </G>
-          {/* Tree, far right */}
           <G transform={`translate(${width - 18} ${groundY - 28})`}>
             <Circle cx={6} cy={10} r={9} />
             <Line x1={6} y1={20} x2={6} y2={32} />
           </G>
         </G>
 
-        {/* Gate dot — anchor point for the pulsing light overlay */}
-        <Circle cx={gateX} cy={groundY - 80} r={2} fill={Palette.statusApprovedText} opacity={0.6} />
+        {/* Static dot at the gate — same outline tone, not animated, blends in. */}
+        <Circle cx={gateX} cy={groundY - 80} r={1.6} fill={stroke} opacity={0.6} />
       </Svg>
-
-      {/* Pulse dot overlay — positioned over the shield */}
-      <Animated.View
-        style={[
-          styles.pulse,
-          {
-            left: gateX - 10,
-            top: groundY - 90,
-            backgroundColor: Palette.statusApprovedText,
-          },
-          pulseStyle,
-        ]}
-        pointerEvents="none"
-      />
 
       {/* Tagline */}
       <View style={styles.tagline}>
@@ -252,12 +214,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 56,
     left: 30,
-  },
-  pulse: {
-    position: 'absolute',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
   },
   tagline: {
     flexDirection: 'row',
