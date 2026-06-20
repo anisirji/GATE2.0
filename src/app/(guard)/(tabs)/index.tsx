@@ -4,6 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
+import { SocietyFooter } from '@/components/SocietyFooter';
 import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { MOCK_ENTRY_LOG } from '@/data/mockData';
 import { useAuth } from '@/lib/auth';
@@ -96,6 +97,9 @@ export default function GuardDashboard() {
             <Feather name="chevron-right" size={18} color={Palette.outline} style={{ marginLeft: Spacing.sm }} />
           </View>
         </Pressable>
+
+        {/* Decorative society scene footer */}
+        <SocietyFooter />
       </ScrollView>
     </SafeAreaView>
   );
