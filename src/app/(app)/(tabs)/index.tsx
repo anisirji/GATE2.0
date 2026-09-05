@@ -58,7 +58,7 @@ export default function Dashboard() {
                 <Text style={[Type.eyebrow, { color: Palette.primary }]}>One‑tap entry</Text>
                 <Text style={[Type.headlineMd, { color: Palette.onSurface }]}>Your visitor pass</Text>
                 <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]} numberOfLines={2}>
-                  Generate a QR your guard can scan in seconds.
+                  Generate a QR and unique ID for gate verification.
                 </Text>
                 <View style={styles.heroCta}>
                   <Text style={[Type.labelMd, { color: Palette.primary }]}>Open pass</Text>

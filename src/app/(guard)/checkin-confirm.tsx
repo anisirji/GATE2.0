@@ -61,6 +61,7 @@ export default function CheckInConfirm() {
 
         {/* Details */}
         <View style={styles.detailCard}>
+          <DetailRow icon="credit-card" label="Unique ID" value={pass.passId} />
           <DetailRow icon="user" label="Host" value={pass.hostName ?? '—'} />
           <DetailRow icon="home" label="Flat" value={pass.flat ?? '—'} />
           <DetailRow icon="calendar" label="Issued" value={pass.issued ?? '—'} />

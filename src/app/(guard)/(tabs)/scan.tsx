@@ -130,7 +130,7 @@ export default function Scan() {
           <View style={styles.sheetHeader}>
             <Text style={[Type.titleSm, { color: Palette.onSurface }]}>Or enter Pass ID manually</Text>
             <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted, marginTop: 2 }]}>
-              Ask the visitor for their 6-digit entry code.
+              Ask the visitor for the unique ID printed below their QR.
             </Text>
           </View>
 
@@ -139,7 +139,7 @@ export default function Scan() {
               <Feather name="credit-card" size={16} color={Palette.onSurfaceVariant} />
               <TextInput
                 value={passId}
-                onChangeText={(t) => setPassId(t.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 12))}
+                onChangeText={(t) => setPassId(t.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 16))}
                 placeholder="MSP-XXXXXX"
                 placeholderTextColor={Palette.outline}
                 autoCapitalize="characters"

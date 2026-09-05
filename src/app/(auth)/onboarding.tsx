@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
@@ -73,11 +73,10 @@ export default function Onboarding() {
   const router = useRouter();
   const [current, setCurrent] = useState(0);
   const [next, setNext] = useState<number | null>(null);
+  const isTransitioning = useRef(false);
   const last = SLIDES.length - 1;
 
-  // Slide content animation (fades when slide changes)
-  const currentOpacity = useSharedValue(1);
-  const nextOpacity = useSharedValue(0);
+  const slideX = useSharedValue(0);
 
   // Car position — runs continuously, never reset on slide change.
   const carX = useSharedValue(CAR_START);
@@ -101,7 +100,8 @@ export default function Onboarding() {
       router.replace('/(auth)/login');
       return;
     }
-    if (next !== null) return; // ignore taps mid-transition
+    if (isTransitioning.current) return; // ignore taps mid-transition
+    isTransitioning.current = true;
     const target = current + 1;
 
     // 1) Cancel the slow loop and SPEED UP — car races off to the right.
@@ -123,29 +123,30 @@ export default function Onboarding() {
       }
     );
 
-    // 2) Cross-fade the sky/buildings as the car races across.
+    // 2) Scroll one scene width while the car races across.
     setNext(target);
-    currentOpacity.value = withTiming(0, { duration: FADE_MS, easing: Easing.out(Easing.exp) });
-    nextOpacity.value = withTiming(1, { duration: FADE_MS, easing: Easing.out(Easing.exp) });
+    slideX.value = withTiming(-SCENE_W, {
+      duration: FADE_MS,
+      easing: Easing.out(Easing.cubic),
+    });
 
-    // 3) Commit the new slide a touch before the car exits — so the dots and
-    // copy update while the car is still sweeping right.
+    // 3) Commit the new slide after that single scene-width scroll.
     setTimeout(() => {
       setCurrent(target);
       setNext(null);
-      currentOpacity.value = 1;
-      nextOpacity.value = 0;
+      slideX.value = 0;
+      isTransitioning.current = false;
     }, FADE_MS);
-  }, [carX, current, currentOpacity, last, next, nextOpacity, router]);
+  }, [carX, current, last, router, slideX]);
 
   const skip = () => router.replace('/(auth)/login');
 
-  const currentStyle = useAnimatedStyle(() => ({ opacity: currentOpacity.value }));
-  const nextStyle = useAnimatedStyle(() => ({ opacity: nextOpacity.value }));
+  const sceneTrackStyle = useAnimatedStyle(() => ({ transform: [{ translateX: slideX.value }] }));
   const carStyle = useAnimatedStyle(() => ({ transform: [{ translateX: carX.value }] }));
 
   const currentSlide = SLIDES[current];
   const nextSlide = next !== null ? SLIDES[next] : null;
+  const sceneSlides = nextSlide ? [currentSlide, nextSlide] : [currentSlide];
 
   return (
     <SafeAreaView style={styles.root}>
@@ -158,23 +159,16 @@ export default function Onboarding() {
       <View style={styles.middle}>
         {/* Scene frame */}
         <View style={styles.sceneFrame}>
-          {/* Layer A: current slide sky + buildings */}
-          <Animated.View style={[StyleSheet.absoluteFill, currentStyle]}>
-            <Svg width={SCENE_W} height={SKY_H} viewBox={`0 0 ${SCENE_W} ${SKY_H}`}>
-              <Sky kind={currentSlide.scene} width={SCENE_W} height={SKY_H} />
-              <Scene kind={currentSlide.scene} width={SCENE_W} height={SKY_H} />
-            </Svg>
+          <Animated.View style={[styles.sceneTrack, sceneTrackStyle]}>
+            {sceneSlides.map((slide) => (
+              <View key={slide.scene} style={styles.scenePage}>
+                <Svg width={SCENE_W} height={SKY_H} viewBox={`0 0 ${SCENE_W} ${SKY_H}`}>
+                  <Sky kind={slide.scene} width={SCENE_W} height={SKY_H} />
+                  <Scene kind={slide.scene} width={SCENE_W} height={SKY_H} />
+                </Svg>
+              </View>
+            ))}
           </Animated.View>
-
-          {/* Layer B: incoming slide sky + buildings */}
-          {nextSlide ? (
-            <Animated.View style={[StyleSheet.absoluteFill, nextStyle]}>
-              <Svg width={SCENE_W} height={SKY_H} viewBox={`0 0 ${SCENE_W} ${SKY_H}`}>
-                <Sky kind={nextSlide.scene} width={SCENE_W} height={SKY_H} />
-                <Scene kind={nextSlide.scene} width={SCENE_W} height={SKY_H} />
-              </Svg>
-            </Animated.View>
-          ) : null}
 
           {/* Persistent road — same across all slides */}
           <View style={styles.roadLayer}>
@@ -191,18 +185,11 @@ export default function Onboarding() {
 
         {/* Copy */}
         <View style={styles.copyOuter}>
-          <Animated.View style={[styles.copyWrap, currentStyle]}>
+          <View style={styles.copyWrap}>
             <Text style={[Type.eyebrow, { color: Palette.primary }]}>{currentSlide.eyebrow}</Text>
             <Text style={[Type.headlineLg, styles.title]}>{currentSlide.title}</Text>
             <Text style={[Type.bodyMd, styles.body]}>{currentSlide.body}</Text>
-          </Animated.View>
-          {nextSlide ? (
-            <Animated.View style={[StyleSheet.absoluteFill, styles.copyWrap, nextStyle]}>
-              <Text style={[Type.eyebrow, { color: Palette.primary }]}>{nextSlide.eyebrow}</Text>
-              <Text style={[Type.headlineLg, styles.title]}>{nextSlide.title}</Text>
-              <Text style={[Type.bodyMd, styles.body]}>{nextSlide.body}</Text>
-            </Animated.View>
-          ) : null}
+          </View>
         </View>
       </View>
 
@@ -548,6 +535,17 @@ const styles = StyleSheet.create({
     borderRadius: Radius.xl,
     overflow: 'hidden',
     backgroundColor: Palette.surfaceContainerLowest,
+  },
+  sceneTrack: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    height: SKY_H,
+    flexDirection: 'row',
+  },
+  scenePage: {
+    width: SCENE_W,
+    height: SKY_H,
   },
   roadLayer: {
     position: 'absolute',

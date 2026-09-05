@@ -6,6 +6,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { captureRef } from 'react-native-view-shot';
 
 import { Button } from '@/components/Button';
 import { Palette, Radius, Shadow, Spacing, Type } from '@/constants/theme';
@@ -29,12 +30,12 @@ const MAX_VALIDITY_MINUTES = 30 * 24 * 60;
 export default function QRPass() {
   const router = useRouter();
   const { user } = useAuth();
-  const qrRef = useRef<{ toDataURL: (callback: (data: string) => void) => void } | null>(null);
+  const ticketRef = useRef<View | null>(null);
   const [duration, setDuration] = useState(DURATIONS[1]);
   const [customValue, setCustomValue] = useState('');
   const [customUnit, setCustomUnit] = useState<CustomUnit>('hours');
   const [issuedAt] = useState(() => new Date());
-  const [passId] = useState(() => 'MSP-' + Math.random().toString(36).slice(2, 8).toUpperCase());
+  const [passId] = useState(generatePassId);
   const [sharing, setSharing] = useState(false);
 
   const expiry = useMemo(
@@ -67,16 +68,14 @@ export default function QRPass() {
         return;
       }
 
-      const base64 = await qrToBase64(qrRef.current);
-      const fileUri = `${FileSystem.cacheDirectory}${passId}.png`;
-      await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
+      const fileUri = await captureVisitorPass(ticketRef.current, passId);
       await Sharing.shareAsync(fileUri, {
         mimeType: 'image/png',
-        dialogTitle: 'Share visitor QR pass',
+        dialogTitle: `Share visitor pass ${passId}`,
         UTI: 'public.png',
       });
     } catch {
-      Alert.alert('Could not share QR', 'Please try again after the QR code finishes loading.');
+      Alert.alert('Could not share pass', 'Please try again after the visitor pass image finishes loading.');
     } finally {
       setSharing(false);
     }
@@ -113,7 +112,7 @@ export default function QRPass() {
         </View>
 
         {/* Hero pass ticket */}
-        <View style={[styles.ticket, Shadow.hero]}>
+        <View ref={ticketRef} collapsable={false} style={[styles.ticket, Shadow.hero]}>
           <View style={styles.ticketTop}>
             <View style={styles.statusRow}>
               <View style={styles.liveDot} />
@@ -124,9 +123,6 @@ export default function QRPass() {
 
           <View style={styles.qrWrap}>
             <QRCode
-              getRef={(ref) => {
-                qrRef.current = ref;
-              }}
               value={payload}
               size={220}
               color={Palette.onSurface}
@@ -149,7 +145,7 @@ export default function QRPass() {
             {user?.society}
           </Text>
           <View style={styles.passIdPill}>
-            <Text style={[Type.eyebrow, { color: Palette.primary }]}>ID {passId}</Text>
+            <Text style={[Type.eyebrow, { color: Palette.primary }]}>Unique ID {passId}</Text>
           </View>
 
           {/* Perforated divider */}
@@ -254,7 +250,7 @@ export default function QRPass() {
         <View style={styles.tip}>
           <Feather name="shield" size={15} color={Palette.onSurfaceVariant} />
           <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant, flex: 1 }]}>
-            Show this QR at the gate. Your guard's scan automatically logs the visit.
+            Show this QR or share the unique ID with the guard for manual verification.
           </Text>
         </View>
 
@@ -297,14 +293,26 @@ function buildExpiry(issuedAt: Date, minutes: number) {
   return expiry;
 }
 
-function qrToBase64(ref: { toDataURL: (callback: (data: string) => void) => void } | null) {
-  return new Promise<string>((resolve, reject) => {
-    if (!ref) {
-      reject(new Error('QR ref unavailable'));
-      return;
-    }
-    ref.toDataURL(resolve);
+function generatePassId() {
+  const timePart = Date.now().toString(36).slice(-4).toUpperCase();
+  const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `MSP-${timePart}-${randomPart}`;
+}
+
+async function captureVisitorPass(ref: View | null, passId: string) {
+  if (!ref) {
+    throw new Error('Pass view unavailable');
+  }
+
+  const capturedUri = await captureRef(ref, {
+    format: 'png',
+    quality: 1,
+    result: 'tmpfile',
   });
+  const fileUri = `${FileSystem.cacheDirectory}${passId}-visitor-pass.png`;
+  await FileSystem.deleteAsync(fileUri, { idempotent: true });
+  await FileSystem.copyAsync({ from: capturedUri, to: fileUri });
+  return fileUri;
 }
 
 function formatDurationLabel(minutes: number) {
