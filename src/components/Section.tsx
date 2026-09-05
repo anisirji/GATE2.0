@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type TextProps, type ViewStyle } from 'react-native';
 import { Palette, Spacing, Type } from '@/constants/theme';
 
 export function SectionHeader({
@@ -28,7 +28,7 @@ export function SectionHeader({
   );
 }
 
-export function Eyebrow({ children, color = Palette.onSurfaceMuted }: { children: string; color?: string }) {
+export function Eyebrow({ children, color = Palette.onSurfaceMuted }: { children: TextProps['children']; color?: string }) {
   return <Text style={[Type.eyebrow, { color }]}>{children}</Text>;
 }
 

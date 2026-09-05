@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import { CameraView, type BarcodeScanningResult, useCameraPermissions } from 'expo-camera';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -23,6 +24,8 @@ export default function Scan() {
   const router = useRouter();
   const lineY = useRef(new Animated.Value(0)).current;
   const [passId, setPassId] = useState('');
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scanned, setScanned] = useState(false);
 
   useEffect(() => {
     Animated.loop(
@@ -47,7 +50,13 @@ export default function Scan() {
 
   const onSearch = () => {
     if (passId.trim().length < 4) return;
-    router.push('/(guard)/checkin-confirm');
+    router.push({ pathname: '/(guard)/checkin-confirm', params: { passId: passId.trim().toUpperCase() } });
+  };
+
+  const onBarcodeScanned = ({ data }: BarcodeScanningResult) => {
+    if (scanned) return;
+    setScanned(true);
+    router.push({ pathname: '/(guard)/checkin-confirm', params: { passData: data } });
   };
 
   return (
@@ -68,6 +77,14 @@ export default function Scan() {
 
         {/* Viewfinder */}
         <View style={styles.viewfinder}>
+          {permission?.granted ? (
+            <CameraView
+              style={StyleSheet.absoluteFill}
+              facing="back"
+              barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+              onBarcodeScanned={scanned ? undefined : onBarcodeScanned}
+            />
+          ) : null}
           <View style={styles.vignette} pointerEvents="none" />
           <View style={styles.frame}>
             <View style={[styles.corner, styles.cornerTL]} />
@@ -77,13 +94,31 @@ export default function Scan() {
             <Animated.View style={[styles.scanLine, { transform: [{ translateY: lineY }] }]} />
           </View>
 
-          <Text style={[Type.titleSm, styles.viewfinderTitle]}>Align the QR within the frame</Text>
-          <Text style={[Type.bodySm, styles.viewfinderHint]} numberOfLines={2}>
-            We'll validate the pass against the resident's record.
-          </Text>
+          {permission?.granted ? (
+            <>
+              <Text style={[Type.titleSm, styles.viewfinderTitle]}>Align the QR within the frame</Text>
+              <Text style={[Type.bodySm, styles.viewfinderHint]} numberOfLines={2}>
+                We'll validate the pass against the resident's record.
+              </Text>
+            </>
+          ) : (
+            <View style={styles.permissionCard}>
+              <Feather name="camera" size={24} color={Palette.onSurface} />
+              <Text style={[Type.titleSm, { color: Palette.onSurface, textAlign: 'center' }]}>Camera permission needed</Text>
+              <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant, textAlign: 'center' }]}>
+                Allow camera access to scan DoorWy visitor passes.
+              </Text>
+              <Button label="Allow camera" icon="camera" fullWidth={false} onPress={requestPermission} />
+            </View>
+          )}
 
           {/* Demo simulate button — small, dismissable in prod */}
-          <Pressable onPress={onSimulate} style={styles.demoBtn}>
+          <Pressable
+            onPress={() => {
+              setScanned(false);
+              onSimulate();
+            }}
+            style={styles.demoBtn}>
             <Feather name="zap" size={12} color="#FFFFFF" />
             <Text style={[Type.labelSm, { color: '#FFFFFF' }]}>Demo: simulate a valid scan</Text>
           </Pressable>
@@ -104,7 +139,7 @@ export default function Scan() {
               <Feather name="credit-card" size={16} color={Palette.onSurfaceVariant} />
               <TextInput
                 value={passId}
-                onChangeText={(t) => setPassId(t.toUpperCase().slice(0, 12))}
+                onChangeText={(t) => setPassId(t.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 12))}
                 placeholder="MSP-XXXXXX"
                 placeholderTextColor={Palette.outline}
                 autoCapitalize="characters"
@@ -145,7 +180,7 @@ const styles = StyleSheet.create({
   },
 
   // Viewfinder
-  viewfinder: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.lg },
+  viewfinder: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.lg, overflow: 'hidden' },
   vignette: {
     position: 'absolute',
     top: '15%',
@@ -188,6 +223,17 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.1)',
     marginTop: Spacing.xl,
+  },
+  permissionCard: {
+    position: 'absolute',
+    left: Spacing.xl,
+    right: Spacing.xl,
+    top: '26%',
+    alignItems: 'center',
+    gap: Spacing.md,
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+    backgroundColor: Palette.surfaceContainerLowest,
   },
 
   // Manual entry sheet

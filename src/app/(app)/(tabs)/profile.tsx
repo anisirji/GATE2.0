@@ -21,7 +21,7 @@ export default function Profile() {
     { icon: 'bell', label: 'Notifications', hint: 'Visitors, dues, notices' },
     { icon: 'shield', label: 'Trusted vehicles', hint: '2 saved' },
     { icon: 'help-circle', label: 'Help & support' },
-    { icon: 'info', label: 'About Civic Shield' },
+    { icon: 'info', label: 'About DoorWy' },
   ];
 
   return (
@@ -86,7 +86,7 @@ export default function Profile() {
         </Pressable>
 
         <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted, textAlign: 'center', marginTop: Spacing.md }]}>
-          Civic Shield · v1.0.0 (demo)
+          DoorWy · v1.0.0 (demo)
         </Text>
 
         <View style={{ height: Spacing.xl }} />

@@ -1,7 +1,7 @@
-# GATE 2.0 — MySociety Smart Community
+# DoorWy
 
 Mobile-first society / gated-community management app. Cross-platform (iOS + Android) via Expo.
-Designed against the **Civic Shield** system from a Stitch project (secure-blue + teal, Plus Jakarta Sans + Inter).
+Designed for the **DoorWy** smart community experience.
 
 ## What's in the MVP
 
@@ -45,15 +45,15 @@ src/
       guest-pass.tsx       # modal: pre-approve guest
       invite-received.tsx  # modal: guest-side invite view
   components/              # Button, Card, Input, StatusBadge, AppHeader, Avatar
-  constants/theme.ts       # Civic Shield design tokens
+  constants/theme.ts       # DoorWy design tokens
   data/mockData.ts         # demo visitors, payments, notices, residents
   lib/auth.tsx             # AuthContext (mocked)
 ```
 
 ## Design source
 
-Stitch project: `10401026301242270114` — *MySociety Smart Community Platform*.
-Design system: **Civic Shield** (light theme, 8px grid, Plus Jakarta Sans + Inter).
+Stitch project: `10401026301242270114` — *DoorWy Smart Community Platform*.
+Design system: **DoorWy** (light theme, 8px grid, Plus Jakarta Sans + Inter).
 
 ## Roadmap
 

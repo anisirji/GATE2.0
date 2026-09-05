@@ -1,5 +1,6 @@
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,9 +10,20 @@ import { Pill } from '@/components/StatusBadge';
 import { Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { DEMO_SCANNED_PASS } from '@/data/mockData';
 
+type ConfirmPass = {
+  passId: string;
+  visitorName?: string;
+  flat?: string;
+  hostName?: string;
+  purpose?: string;
+  validUntil?: string;
+  issued?: string;
+};
+
 export default function CheckInConfirm() {
   const router = useRouter();
-  const pass = DEMO_SCANNED_PASS;
+  const params = useLocalSearchParams<{ passData?: string; passId?: string }>();
+  const pass = useMemo(() => parseScannedPass(params.passData, params.passId), [params.passData, params.passId]);
 
   return (
     <SafeAreaView style={styles.root}>
@@ -51,6 +63,7 @@ export default function CheckInConfirm() {
         <View style={styles.detailCard}>
           <DetailRow icon="user" label="Host" value={pass.hostName ?? '—'} />
           <DetailRow icon="home" label="Flat" value={pass.flat ?? '—'} />
+          <DetailRow icon="calendar" label="Issued" value={pass.issued ?? '—'} />
           <DetailRow icon="clock" label="Valid until" value={pass.validUntil ?? '—'} last />
         </View>
 
@@ -85,6 +98,36 @@ export default function CheckInConfirm() {
       </View>
     </SafeAreaView>
   );
+}
+
+function parseScannedPass(passData?: string, manualPassId?: string): ConfirmPass {
+  if (!passData) {
+    return manualPassId ? { ...DEMO_SCANNED_PASS, passId: manualPassId } : DEMO_SCANNED_PASS;
+  }
+
+  try {
+    const data = JSON.parse(passData);
+    return {
+      passId: String(data.passId ?? DEMO_SCANNED_PASS.passId),
+      visitorName: String(data.visitorName ?? 'Visitor'),
+      flat: String(data.flatName ?? data.flat ?? DEMO_SCANNED_PASS.flat),
+      hostName: String(data.hostName ?? data.host ?? DEMO_SCANNED_PASS.hostName),
+      purpose: String(data.purpose ?? 'Visitor pass'),
+      validUntil: String(data.validUntil ?? formatDateTime(data.expiresAt) ?? DEMO_SCANNED_PASS.validUntil),
+      issued: String(data.issued ?? formatDateTime(data.issuedAt) ?? '—'),
+    };
+  } catch {
+    return { ...DEMO_SCANNED_PASS, passId: passData.slice(0, 24) };
+  }
+}
+
+function formatDateTime(value?: string) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  const time = date.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+  const day = date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  return `${time}, ${day}`;
 }
 
 function DetailRow({

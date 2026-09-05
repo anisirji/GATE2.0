@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Gatev2.0",
-    "slug": "Gatev2.0",
+    "name": "DoorWy",
+    "slug": "doorwy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "gatev20",
+    "scheme": "doorwy",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
@@ -35,7 +35,17 @@
             "imageWidth": 76
           }
         }
-      ]
+      ],
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "DoorWy needs camera access to scan visitor QR passes."
+        }
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

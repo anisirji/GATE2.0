@@ -27,8 +27,8 @@ export default function Splash() {
         <Feather name="shield" size={56} color="#fff" />
       </Animated.View>
       <Animated.View style={{ opacity: fade, alignItems: 'center', gap: Spacing.xs }}>
-        <Text style={[Type.headlineLg, { color: Palette.onSurface }]}>MySociety</Text>
-        <Text style={[Type.bodyMd, { color: Palette.onSurfaceVariant }]}>Civic Shield · Smart community</Text>
+        <Text style={[Type.headlineLg, { color: Palette.onSurface }]}>DoorWy</Text>
+        <Text style={[Type.bodyMd, { color: Palette.onSurfaceVariant }]}>Smart community access</Text>
       </Animated.View>
     </View>
   );

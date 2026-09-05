@@ -85,7 +85,7 @@ export default function AdminProfile() {
         </Pressable>
 
         <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted, textAlign: 'center', marginTop: Spacing.md }]}>
-          Civic Shield · v1.0.0
+          DoorWy · v1.0.0
         </Text>
 
         <View style={{ height: Spacing.xl }} />

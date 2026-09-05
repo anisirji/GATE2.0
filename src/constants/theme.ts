@@ -1,7 +1,7 @@
 import { Platform, TextStyle } from 'react-native';
 
 /**
- * Civic Shield — design tokens v2.
+ * DoorWy design tokens v2.
  * Direction: modern light minimal, crafted details.
  * Off-white with subtle indigo tint, pure-but-warm cards, hairline borders,
  * one indigo accent, status colors only for status, generous whitespace.

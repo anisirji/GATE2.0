@@ -36,7 +36,7 @@ export default function Login() {
               <View style={styles.markInner} />
             </View>
             <Text style={[Type.eyebrow, { color: Palette.onSurfaceMuted, marginTop: Spacing.xl }]}>
-              Civic Shield
+              DoorWy
             </Text>
             <Text style={[Type.headlineLg, styles.title]}>Welcome back</Text>
             <Text style={[Type.bodyMd, styles.subtitle]}>
