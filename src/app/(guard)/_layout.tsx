@@ -7,6 +7,7 @@ export default function GuardLayout() {
       <Stack.Screen name="checkin-confirm" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       <Stack.Screen name="entry-approved" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       <Stack.Screen name="visitor-details" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="entry-details" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
     </Stack>
   );
 }

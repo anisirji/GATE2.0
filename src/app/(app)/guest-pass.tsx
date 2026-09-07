@@ -10,6 +10,7 @@ import { Input } from '@/components/Input';
 import { Pill } from '@/components/StatusBadge';
 import { Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
+import { useVisitors, type RecurringInvite } from '@/lib/visitor-store';
 
 const VISITOR_TYPES = [
   { label: 'Guest', icon: 'user' },
@@ -35,20 +36,27 @@ const PHONEBOOK = [
 
 const SOCIETY_ADDRESS = 'Lakeview Heights, Gate 1, Whitefield Main Road, Bengaluru';
 type VisitorType = (typeof VISITOR_TYPES)[number]['label'];
-type Mode = 'preapprove' | 'invite';
+type Mode = 'preapprove' | 'invite' | 'recurring';
+
+const RECURRING_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function GuestPass() {
   const router = useRouter();
   const { user } = useAuth();
+  const { createRecurringInvite } = useVisitors();
   const [mode, setMode] = useState<Mode>('preapprove');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [visitorType, setVisitorType] = useState<VisitorType>('Guest');
   const [expectedDate, setExpectedDate] = useState('Tomorrow');
   const [expectedTime, setExpectedTime] = useState('10:00 AM');
+  const [recurringDays, setRecurringDays] = useState(['Mon', 'Wed', 'Fri']);
+  const [windowStart, setWindowStart] = useState('9:00 AM');
+  const [windowEnd, setWindowEnd] = useState('11:00 AM');
   const [vehicle, setVehicle] = useState('');
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [visitCode, setVisitCode] = useState('');
+  const [recurringInvite, setRecurringInvite] = useState<RecurringInvite | null>(null);
   const [step, setStep] = useState<'form' | 'success'>('form');
 
   const selectedGuests = useMemo(
@@ -65,10 +73,31 @@ export default function GuestPass() {
     expectedTime.trim().length > 1 &&
     (phone.length === 0 || phone.length === 10);
   const validInvitation = selectedContacts.length > 0 && expectedDate.trim().length > 1 && expectedTime.trim().length > 1;
-  const canSubmit = mode === 'invite' ? validInvitation : validPreApproval;
+  const validRecurring =
+    name.trim().length > 1 &&
+    phone.length === 10 &&
+    recurringDays.length > 0 &&
+    windowStart.trim().length > 1 &&
+    windowEnd.trim().length > 1;
+  const canSubmit = mode === 'invite' ? validInvitation : mode === 'recurring' ? validRecurring : validPreApproval;
 
   const createEntry = () => {
     if (!canSubmit) return;
+    if (mode === 'recurring') {
+      const invite = createRecurringInvite({
+        name,
+        phone,
+        purpose: visitorType,
+        flat,
+        days: recurringDays,
+        startTime: windowStart,
+        endTime: windowEnd,
+      });
+      setRecurringInvite(invite);
+      setVisitCode(invite.todayOtp);
+      setStep('success');
+      return;
+    }
     setVisitCode(generateVisitCode());
     setStep('success');
   };

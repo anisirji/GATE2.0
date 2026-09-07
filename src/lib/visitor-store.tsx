@@ -21,6 +21,24 @@ type SpotApproval = {
   phone: string;
 };
 
+type RecurringInviteInput = {
+  name: string;
+  phone: string;
+  purpose: string;
+  flat: string;
+  days: string[];
+  startTime: string;
+  endTime: string;
+};
+
+export type RecurringInvite = RecurringInviteInput & {
+  id: string;
+  todayOtp: string;
+  otpDate: string;
+  active: boolean;
+  createdAt: string;
+};
+
 export type VisitorPassDetails = {
   visitorId: string;
   passId: string;
@@ -28,6 +46,7 @@ export type VisitorPassDetails = {
   validUntil: string;
   validityMinutes: number;
   lastExtendedAt?: string;
+  lastExtendedMinutes?: number;
 };
 
 export type VisitorNotification = {
@@ -42,6 +61,7 @@ export type VisitorNotification = {
 type VisitorStore = {
   visitors: Visitor[];
   entryLog: EntryLog[];
+  recurringInvites: RecurringInvite[];
   passDetails: Record<string, VisitorPassDetails>;
   notifications: VisitorNotification[];
   hasPendingSpotApproval: boolean;
@@ -49,6 +69,7 @@ type VisitorStore = {
   approveSpotVisitor: (approval: SpotApproval) => void;
   dismissSpotApproval: () => void;
   extendVisitorValidity: (visitorId: string, minutes: number) => void;
+  createRecurringInvite: (invite: RecurringInviteInput) => RecurringInvite;
 };
 
 const VisitorStoreContext = createContext<VisitorStore | null>(null);
@@ -56,8 +77,9 @@ const VisitorStoreContext = createContext<VisitorStore | null>(null);
 export function VisitorProvider({ children }: { children: ReactNode }) {
   const [visitors, setVisitors] = useState(MOCK_VISITORS);
   const [entryLog, setEntryLog] = useState(MOCK_ENTRY_LOG);
+  const [recurringInvites, setRecurringInvites] = useState<RecurringInvite[]>([]);
   const [passDetails, setPassDetails] = useState<Record<string, VisitorPassDetails>>(
-    () => buildInitialPassDetails(MOCK_VISITORS),
+    () => buildInitialPassDetails(MOCK_VISITORS, MOCK_ENTRY_LOG),
   );
   const [notifications, setNotifications] = useState<VisitorNotification[]>(() => [
     buildExpiryNotification("v2", "Swiggy Delivery", "A-1204", relativeTime(10)),
@@ -125,6 +147,7 @@ export function VisitorProvider({ children }: { children: ReactNode }) {
           validUntil,
           validityMinutes: existing.validityMinutes + minutes,
           lastExtendedAt: "Today, now",
+          lastExtendedMinutes: minutes,
         },
       };
     });
@@ -141,10 +164,53 @@ export function VisitorProvider({ children }: { children: ReactNode }) {
     ]);
   };
 
+  const createRecurringInvite = (invite: RecurringInviteInput) => {
+    const id = `recurring-${Date.now()}`;
+    const today = todayKey();
+    const recurringInvite: RecurringInvite = {
+      ...invite,
+      id,
+      todayOtp: dailyOtp(id, today),
+      otpDate: today,
+      active: true,
+      createdAt: "Today, now",
+    };
+    const visitor: Visitor = {
+      id,
+      name: invite.name,
+      purpose: `${invite.purpose} · recurring`,
+      arrivalTime: `${invite.days.join(", ")} · ${invite.startTime}`,
+      status: "expected",
+      phone: invite.phone,
+      hostFlat: invite.flat,
+    };
+
+    setRecurringInvites((current) => [recurringInvite, ...current.filter((item) => item.id !== id)]);
+    setVisitors((current) => [visitor, ...current.filter((item) => item.id !== id)]);
+    setPassDetails((current) => ({
+      ...current,
+      [id]: buildPassDetails(id, "Renews daily", `Today, ${invite.endTime}`, 24 * 60),
+    }));
+    setNotifications((current) => [
+      {
+        id: `recurring-${id}`,
+        visitorId: id,
+        title: `${invite.name} recurring invite active`,
+        body: `A fresh OTP is generated each day for ${invite.startTime}-${invite.endTime}. Today's OTP is ${recurringInvite.todayOtp}.`,
+        postedAt: "Just now",
+        tone: "success",
+      },
+      ...current,
+    ]);
+
+    return recurringInvite;
+  };
+
   const value = useMemo(
     () => ({
       visitors,
       entryLog,
+      recurringInvites,
       passDetails,
       notifications,
       hasPendingSpotApproval,
@@ -152,8 +218,9 @@ export function VisitorProvider({ children }: { children: ReactNode }) {
       approveSpotVisitor,
       dismissSpotApproval,
       extendVisitorValidity,
+      createRecurringInvite,
     }),
-    [visitors, entryLog, passDetails, notifications, hasPendingSpotApproval],
+    [visitors, entryLog, recurringInvites, passDetails, notifications, hasPendingSpotApproval],
   );
 
   return (
@@ -170,19 +237,25 @@ export function useVisitors() {
   return context;
 }
 
-function buildInitialPassDetails(visitors: Visitor[]) {
+function buildInitialPassDetails(visitors: Visitor[], entryLog: EntryLog[]) {
   return visitors.reduce<Record<string, VisitorPassDetails>>((details, visitor, index) => {
-    const issuedAt = visitor.status === "expected" ? "Pending check-in" : visitor.arrivalTime;
+    const entry = entryLog.find(
+      (item) =>
+        item.visitorName === visitor.name &&
+        item.flat === visitor.hostFlat &&
+        (!item.vehicleNo || item.vehicleNo === visitor.vehicleNo),
+    );
+    const issuedAt = entry?.inAt ?? (visitor.status === "expected" ? "Pending check-in" : visitor.arrivalTime);
     const validUntil =
       visitor.id === "v2"
         ? relativeTime(10)
-        : visitor.status === "checked-in"
+        : entry?.status === "inside" || visitor.status === "checked-in"
           ? "Today, 6:00 PM"
-          : visitor.status === "expected"
+          : entry?.status === "denied" || visitor.status === "denied"
+            ? "Not valid"
+            : visitor.status === "expected" && !entry
             ? "After gate check-in"
-            : visitor.status === "denied"
-              ? "Not valid"
-              : "Expired";
+            : "Expired";
 
     details[visitor.id] = buildPassDetails(visitor.id, issuedAt, validUntil, visitor.status === "expected" ? 120 : 480 + index * 10);
     return details;
@@ -227,4 +300,17 @@ function relativeTime(minutesFromNow: number) {
     minute: "2-digit",
     hour12: true,
   })}`;
+}
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function dailyOtp(inviteId: string, dateKey: string) {
+  const seed = `${inviteId}-${dateKey}`;
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash * 31 + seed.charCodeAt(i)) % 1000000;
+  }
+  return String(hash).padStart(6, "0");
 }

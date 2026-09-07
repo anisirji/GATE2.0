@@ -1,4 +1,5 @@
 import { Feather } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,7 +8,7 @@ import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { Pill } from '@/components/StatusBadge';
 import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
-import { type EntryLog } from '@/data/mockData';
+import { type EntryLog, type Visitor } from '@/data/mockData';
 import { useVisitors } from '@/lib/visitor-store';
 
 type Filter = 'all' | EntryLog['status'];
@@ -20,7 +21,8 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 export default function Entries() {
-  const { entryLog } = useVisitors();
+  const router = useRouter();
+  const { entryLog, visitors, getVisitorPass } = useVisitors();
   const [filter, setFilter] = useState<Filter>('all');
   const list = useMemo(
     () => (filter === 'all' ? entryLog : entryLog.filter((e) => e.status === filter)),
@@ -62,8 +64,15 @@ export default function Entries() {
       </ScrollView>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        {list.map((e) => (
-          <Card key={e.id} variant="outlined" padding="md">
+        {list.map((e) => {
+          const visitor = visitorForEntry(e, visitors);
+          const pass = visitor ? getVisitorPass(visitor.id) : null;
+          return (
+          <Pressable
+            key={e.id}
+            onPress={() => router.push({ pathname: '/(guard)/entry-details', params: { id: e.id } })}
+            style={({ pressed }) => pressed && { transform: [{ scale: 0.995 }], opacity: 0.94 }}>
+          <Card variant="outlined" padding="md">
             <View style={styles.row}>
               <Avatar name={e.visitorName} size={40} />
               <View style={{ flex: 1, gap: 2 }}>
@@ -75,27 +84,62 @@ export default function Entries() {
                 </Text>
               </View>
               {labelFor(e.status)}
+              <Feather name="chevron-right" size={16} color={Palette.outline} />
             </View>
             <View style={styles.metaRow}>
               <Meta icon="log-in" text={`In ${e.inAt}`} />
               {e.outAt ? <Meta icon="log-out" text={`Out ${e.outAt}`} /> : null}
               {e.vehicleNo ? <Meta icon="truck" text={e.vehicleNo} /> : null}
+              {pass?.lastExtendedMinutes ? (
+                <Meta icon="refresh-cw" text={`Extended by ${formatDuration(pass.lastExtendedMinutes)}`} tone="success" />
+              ) : null}
             </View>
           </Card>
-        ))}
+          </Pressable>
+          );
+        })}
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function Meta({ icon, text }: { icon: keyof typeof Feather.glyphMap; text: string }) {
+function Meta({
+  icon,
+  text,
+  tone,
+}: {
+  icon: keyof typeof Feather.glyphMap;
+  text: string;
+  tone?: 'success';
+}) {
+  const color = tone === 'success' ? Palette.statusApprovedText : Palette.onSurfaceMuted;
   return (
     <View style={styles.meta}>
-      <Feather name={icon} size={11} color={Palette.onSurfaceMuted} />
-      <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted }]}>{text}</Text>
+      <Feather name={icon} size={11} color={color} />
+      <Text style={[Type.labelSm, { color }]}>{text}</Text>
     </View>
   );
+}
+
+function visitorForEntry(entry: EntryLog, visitors: Visitor[]) {
+  const spotId = entry.id.startsWith('spot-') ? entry.id.replace(/^spot-/, '') : null;
+  return visitors.find((visitor) => {
+    if (spotId && visitor.id === spotId) return true;
+    return (
+      visitor.name === entry.visitorName &&
+      visitor.hostFlat === entry.flat &&
+      (!entry.vehicleNo || visitor.vehicleNo === entry.vehicleNo)
+    );
+  });
+}
+
+function formatDuration(minutes: number) {
+  if (minutes >= 60 && minutes % 60 === 0) {
+    const hours = minutes / 60;
+    return `${hours} hour${hours === 1 ? '' : 's'}`;
+  }
+  return `${minutes} min`;
 }
 
 function labelFor(status: EntryLog['status']) {
