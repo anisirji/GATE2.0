@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
@@ -9,6 +9,10 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Pill } from '@/components/StatusBadge';
 import { Palette, Radius, Spacing, Type } from '@/constants/theme';
+
+const ENTRY_CODE = '482913';
+const SOCIETY = 'Lakeview Heights';
+const ADDRESS = 'Lakeview Heights, Gate 1, Whitefield Main Road, Bengaluru';
 
 export default function InviteReceived() {
   const router = useRouter();
@@ -19,8 +23,8 @@ export default function InviteReceived() {
       <Result
         icon="check"
         bg={Palette.success}
-        title="You're on the list"
-        body="The host has been notified. The guard will let you in on arrival."
+        title="Entry card saved"
+        body="Show this code at the gate. The guard can verify it without calling the host."
         onClose={() => router.back()}
       />
     );
@@ -31,7 +35,7 @@ export default function InviteReceived() {
         icon="x"
         bg={Palette.error}
         title="Declined"
-        body="No worries — we'll let the host know you can't make it."
+        body="No worries. The host will see that you cannot make it."
         onClose={() => router.back()}
       />
     );
@@ -44,7 +48,7 @@ export default function InviteReceived() {
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.iconBtn}>
             <Feather name="x" size={22} color={Palette.onSurface} />
           </Pressable>
-          <Text style={[Type.titleLg, { color: Palette.onSurface }]}>You're invited</Text>
+          <Text style={[Type.titleLg, { color: Palette.onSurface }]}>Entry card</Text>
           <View style={{ width: 40 }} />
         </View>
 
@@ -52,41 +56,46 @@ export default function InviteReceived() {
           <View style={styles.hostStack}>
             <Avatar name="Anika Sharma" color={Palette.primary} size={72} />
             <View style={[styles.linkDot, { backgroundColor: Palette.secondary }]}>
-              <Feather name="plus" size={14} color="#fff" />
+              <Feather name="send" size={14} color="#FFFFFF" />
             </View>
-            <Avatar name="You" color={Palette.surfaceContainerHigh} size={72} />
+            <Avatar name="Priya" color={Palette.surfaceContainerHigh} size={72} />
           </View>
           <Text style={[Type.headlineLgMobile, { color: Palette.onSurface, textAlign: 'center' }]}>
-            Anika invited you to visit{'\n'}Lakeview Heights
+            Anika invited you to visit{'\n'}{SOCIETY}
           </Text>
           <Text style={[Type.bodyLg, { color: Palette.onSurfaceVariant, textAlign: 'center' }]}>
-            Tap accept and the gate will be expecting you.
+            Keep this card handy and show the code at Gate 1.
           </Text>
         </View>
 
-        <Card padding="lg" accentColor={Palette.primary} style={{ gap: Spacing.md }}>
-          <Detail icon="map-pin" label="Where" value="Lakeview Heights, Tower A · Flat 1204" />
-          <Detail icon="calendar" label="When" value="Today, 4:30 PM – 6:00 PM" />
-          <Detail icon="user" label="Host" value="Anika Sharma · +91 98765 43210" />
-          <Detail icon="info" label="Purpose" value="Family visit" />
-          <View style={{ flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.xs }}>
-            <Pill label="Single entry" bg={Palette.surfaceContainerHigh} color={Palette.onSurface} />
-            <Pill label="Verified" bg={Palette.statusApprovedBg} color={Palette.statusApprovedText} />
+        <View style={styles.entryCard}>
+          <View style={styles.entryHeader}>
+            <View>
+              <Text style={[Type.eyebrow, { color: Palette.primary }]}>Digital entry card</Text>
+              <Text style={[Type.titleLg, { color: Palette.onSurface, marginTop: 4 }]}>{SOCIETY}</Text>
+            </View>
+            <Pill label="Single entry" bg={Palette.statusApprovedBg} color={Palette.statusApprovedText} />
           </View>
-        </Card>
 
-        <Card padding="md" style={{ backgroundColor: Palette.surfaceContainerLow }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.sm }}>
-            <Feather name="shield" size={16} color={Palette.secondary} />
-            <Text style={[Type.labelMd, { color: Palette.onSurfaceVariant, flex: 1 }]}>
-              The pass auto-expires at 6:00 PM. Show this screen at the gate or just share your name.
-            </Text>
+          <View style={styles.codePanel}>
+            <Text style={[Type.eyebrow, { color: Palette.primary }]}>Gate code</Text>
+            <Text style={styles.codeText}>{ENTRY_CODE}</Text>
           </View>
-        </Card>
+
+          <Card padding="md" style={{ backgroundColor: Palette.surfaceContainerLow, gap: Spacing.md }}>
+            <Detail icon="map-pin" label="Address" value={ADDRESS} />
+            <Detail icon="calendar" label="When" value="Today, 4:30 PM - 6:00 PM" />
+            <Detail icon="user" label="Host" value="Anika Sharma · Flat A-1204" />
+            <Detail icon="info" label="Purpose" value="Birthday party" />
+          </Card>
+
+          <MiniMap />
+        </View>
 
         <View style={{ gap: Spacing.sm }}>
-          <Button label="Accept invitation" icon="check" onPress={() => setAccepted(true)} />
-          <Button label="Can't make it" variant="outline" onPress={() => setAccepted(false)} />
+          <Button label="Open map" icon="map-pin" variant="secondary" onPress={() => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(ADDRESS)}`).catch(() => {})} />
+          <Button label="Save entry card" icon="check" onPress={() => setAccepted(true)} />
+          <Button label="Cannot make it" variant="outline" onPress={() => setAccepted(false)} />
         </View>
 
         <View style={{ height: Spacing.xl }} />
@@ -97,7 +106,7 @@ export default function InviteReceived() {
 
 function Detail({ icon, label, value }: { icon: keyof typeof Feather.glyphMap; label: string; value: string }) {
   return (
-    <View style={{ flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start' }}>
+    <View style={styles.detailRow}>
       <View style={styles.detailIcon}>
         <Feather name={icon} size={16} color={Palette.primary} />
       </View>
@@ -109,12 +118,26 @@ function Detail({ icon, label, value }: { icon: keyof typeof Feather.glyphMap; l
   );
 }
 
+function MiniMap() {
+  return (
+    <View style={styles.map}>
+      <View style={styles.mapRoadH} />
+      <View style={styles.mapRoadV} />
+      <View style={styles.mapBlockA} />
+      <View style={styles.mapBlockB} />
+      <View style={styles.mapPin}>
+        <Feather name="map-pin" size={18} color="#FFFFFF" />
+      </View>
+    </View>
+  );
+}
+
 function Result({ icon, bg, title, body, onClose }: { icon: keyof typeof Feather.glyphMap; bg: string; title: string; body: string; onClose: () => void }) {
   return (
     <SafeAreaView style={styles.root}>
       <View style={styles.resultWrap}>
         <View style={[styles.resultBadge, { backgroundColor: bg }]}>
-          <Feather name={icon} size={48} color="#fff" />
+          <Feather name={icon} size={48} color="#FFFFFF" />
         </View>
         <Text style={[Type.headlineLg, { color: Palette.onSurface, textAlign: 'center' }]}>{title}</Text>
         <Text style={[Type.bodyLg, { color: Palette.onSurfaceVariant, textAlign: 'center', paddingHorizontal: Spacing.lg }]}>{body}</Text>
@@ -132,7 +155,42 @@ const styles = StyleSheet.create({
   hero: { alignItems: 'center', gap: Spacing.md, paddingVertical: Spacing.lg },
   hostStack: { flexDirection: 'row', alignItems: 'center', gap: -8 },
   linkDot: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', marginHorizontal: -8, zIndex: 2, borderWidth: 3, borderColor: Palette.surface },
+  entryCard: {
+    gap: Spacing.md,
+    padding: Spacing.lg,
+    borderRadius: Radius.xl,
+    backgroundColor: Palette.surfaceContainerLowest,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+  },
+  entryHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: Spacing.md },
+  codePanel: {
+    alignItems: 'center',
+    gap: Spacing.xs,
+    padding: Spacing.xl,
+    borderRadius: Radius.lg,
+    backgroundColor: Palette.primaryContainer,
+  },
+  codeText: {
+    ...Type.headlineLg,
+    color: Palette.primary,
+    letterSpacing: 6,
+  },
+  detailRow: { flexDirection: 'row', gap: Spacing.md, alignItems: 'flex-start' },
   detailIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: Palette.primaryContainer, alignItems: 'center', justifyContent: 'center' },
+  map: {
+    height: 160,
+    borderRadius: Radius.lg,
+    overflow: 'hidden',
+    backgroundColor: '#E7EEEA',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+  },
+  mapRoadH: { position: 'absolute', left: 0, right: 0, top: 74, height: 18, backgroundColor: '#FFFFFF' },
+  mapRoadV: { position: 'absolute', top: 0, bottom: 0, left: 150, width: 18, backgroundColor: '#FFFFFF' },
+  mapBlockA: { position: 'absolute', left: 18, top: 18, width: 96, height: 42, borderRadius: 8, backgroundColor: '#C7E8DB' },
+  mapBlockB: { position: 'absolute', right: 22, bottom: 22, width: 122, height: 48, borderRadius: 8, backgroundColor: '#C9D1F2' },
+  mapPin: { position: 'absolute', left: '50%', top: 54, width: 42, height: 42, marginLeft: -21, borderRadius: 21, backgroundColor: Palette.primary, alignItems: 'center', justifyContent: 'center' },
   resultWrap: { flex: 1, padding: Spacing.lg, alignItems: 'center', justifyContent: 'center', gap: Spacing.lg },
   resultBadge: { width: 96, height: 96, borderRadius: 48, alignItems: 'center', justifyContent: 'center' },
 });

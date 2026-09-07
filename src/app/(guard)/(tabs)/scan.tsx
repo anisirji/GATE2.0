@@ -128,9 +128,9 @@ export default function Scan() {
         <View style={styles.sheet}>
           <View style={styles.sheetHandle} />
           <View style={styles.sheetHeader}>
-            <Text style={[Type.titleSm, { color: Palette.onSurface }]}>Or enter Pass ID manually</Text>
+            <Text style={[Type.titleSm, { color: Palette.onSurface }]}>Or enter code manually</Text>
             <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted, marginTop: 2 }]}>
-              Ask the visitor for the unique ID printed below their QR.
+              Ask for the visit OTP or the unique ID printed below their QR.
             </Text>
           </View>
 
@@ -140,7 +140,7 @@ export default function Scan() {
               <TextInput
                 value={passId}
                 onChangeText={(t) => setPassId(t.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 16))}
-                placeholder="MSP-XXXXXX"
+                placeholder="123456 or MSP-XXXX"
                 placeholderTextColor={Palette.outline}
                 autoCapitalize="characters"
                 style={[Type.bodyMd, styles.input]}

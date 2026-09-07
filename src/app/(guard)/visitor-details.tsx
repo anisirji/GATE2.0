@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Avatar } from '@/components/Avatar';
@@ -9,7 +9,7 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Pill } from '@/components/StatusBadge';
 import { Palette, Radius, Spacing, Type } from '@/constants/theme';
-import { DEMO_SCANNED_PASS, MOCK_VISITORS } from '@/data/mockData';
+import { DEMO_SCANNED_PASS, FLAT_OPTIONS, MOCK_VISITORS } from '@/data/mockData';
 
 export default function VisitorDetails() {
   const router = useRouter();
@@ -22,12 +22,52 @@ export default function VisitorDetails() {
   const [flat, setFlat] = useState(visitor?.hostFlat ?? '');
   const [vehicle, setVehicle] = useState(visitor?.vehicleNo ?? '');
   const [purpose, setPurpose] = useState(visitor?.purpose ?? '');
+  const [photoCaptured, setPhotoCaptured] = useState(false);
+  const [approvalRequested, setApprovalRequested] = useState(false);
 
   const canApprove = !isManual || (name.trim() && flat.trim());
+  const canRequestApproval = isManual && name.trim().length > 1 && flat.trim().length > 1;
+
+  if (approvalRequested) {
+    return (
+      <SafeAreaView style={styles.root}>
+        <View style={styles.successWrap}>
+          <View style={styles.pendingBadge}>
+            <Feather name="send" size={38} color={Palette.primary} />
+          </View>
+          <Text style={[Type.headlineLg, styles.centerText]}>Approval requested</Text>
+          <Text style={[Type.bodyLg, styles.centerBody]}>
+            A push notification was sent to Flat {flat}. The resident can Allow, Deny, or Call from their phone.
+          </Text>
+
+          <Card padding="lg" style={{ width: '100%' }} accentColor={Palette.primary}>
+            <Text style={[Type.labelMd, { color: Palette.onSurfaceVariant }]}>Spot entry</Text>
+            <View style={styles.summaryRow}>
+              <Text style={[Type.titleMd, { color: Palette.onSurface }]}>{name}</Text>
+              <Pill label={purpose || 'Visit'} bg={Palette.primaryContainer} color={Palette.onPrimaryContainer} />
+            </View>
+            <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant, marginTop: Spacing.xs }]}>
+              Flat {flat}{vehicle ? ` · ${vehicle}` : ''}{photoCaptured ? ' · Photo attached' : ''}
+            </Text>
+          </Card>
+
+          <View style={styles.liveStatus}>
+            <Feather name="radio" size={16} color={Palette.warning} />
+            <Text style={[Type.titleSm, { color: Palette.warning }]}>Waiting for resident response</Text>
+          </View>
+
+          <View style={{ width: '100%', gap: Spacing.sm }}>
+            <Button label="Start next visitor" icon="user-plus" onPress={() => router.replace({ pathname: '/(guard)/visitor-details', params: { id: 'manual' } })} />
+            <Button label="Simulate resident allowed" icon="check" variant="secondary" onPress={() => router.replace('/(guard)/entry-approved')} />
+            <Button label="Back to dashboard" variant="outline" onPress={() => router.replace('/(guard)/(tabs)')} />
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.root}>
-      {/* Top bar */}
       <View style={styles.topBar}>
         <Pressable onPress={() => router.back()} hitSlop={12} style={styles.iconBtn}>
           <Feather name="chevron-left" size={22} color={Palette.onSurface} />
@@ -37,7 +77,6 @@ export default function VisitorDetails() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Visitor hero — large avatar, name, purpose pill */}
         <Card variant="outlined" padding="xl">
           <View style={styles.hero}>
             <Avatar name={visitor?.name ?? name ?? '?'} size={84} />
@@ -54,37 +93,29 @@ export default function VisitorDetails() {
           </View>
         </Card>
 
-        {/* Pre-approval banner */}
         {!isManual && visitor ? (
           <View style={styles.banner}>
             <Feather name="check-circle" size={17} color={Palette.statusApprovedText} />
             <View style={{ flex: 1 }}>
-              <Text style={[Type.titleSm, { color: Palette.statusApprovedText }]}>
-                Pre-approved by resident
-              </Text>
-              <Text style={[Type.labelSm, { color: Palette.statusApprovedText, opacity: 0.85 }]}>
-                Flat {visitor.hostFlat}
-              </Text>
+              <Text style={[Type.titleSm, { color: Palette.statusApprovedText }]}>Pre-approved by resident</Text>
+              <Text style={[Type.labelSm, { color: Palette.statusApprovedText, opacity: 0.85 }]}>Flat {visitor.hostFlat}</Text>
             </View>
           </View>
         ) : (
           <View style={[styles.banner, { backgroundColor: Palette.warningContainer }]}>
-            <Feather name="info" size={17} color={Palette.warning} />
+            <Feather name="bell" size={17} color={Palette.warning} />
             <View style={{ flex: 1 }}>
-              <Text style={[Type.titleSm, { color: Palette.warning }]}>
-                Not pre-approved
-              </Text>
+              <Text style={[Type.titleSm, { color: Palette.warning }]}>Spot approval needed</Text>
               <Text style={[Type.labelSm, { color: Palette.warning, opacity: 0.85 }]}>
-                Confirm with the host before allowing entry.
+                Send an app approval request before allowing entry.
               </Text>
             </View>
           </View>
         )}
 
-        {/* Detail list — single hairline card with rows */}
         {!isManual && visitor ? (
           <View style={styles.detailList}>
-            <DetailRow icon="home" label="Flat" value={`${visitor.hostFlat ?? '—'}`} />
+            <DetailRow icon="home" label="Flat" value={`${visitor.hostFlat ?? '-'}`} />
             <DetailRow icon="clock" label="Time" value={visitor.arrivalTime} />
             {visitor.vehicleNo ? <DetailRow icon="truck" label="Vehicle" value={visitor.vehicleNo} /> : null}
             <DetailRow icon="credit-card" label="Pass ID" value={DEMO_SCANNED_PASS.passId} />
@@ -98,22 +129,46 @@ export default function VisitorDetails() {
             />
           </View>
         ) : (
-          /* Manual entry — form fields in a single bordered card */
-          <View style={styles.formCard}>
-            <Field label="Visitor name" value={name} onChangeText={setName} placeholder="Full name" />
-            <Field label="Visiting flat" value={flat} onChangeText={setFlat} placeholder="A-1204" />
-            <Field label="Purpose" value={purpose} onChangeText={setPurpose} placeholder="Delivery, family visit…" />
-            <Field
-              label="Vehicle (optional)"
-              value={vehicle}
-              onChangeText={setVehicle}
-              placeholder="KA 01 AB 1234"
-              last
-            />
-          </View>
+          <>
+            <View style={styles.flatBlock}>
+              <Text style={[Type.eyebrow, { color: Palette.onSurfaceMuted }]}>Tap flat number</Text>
+              <View style={styles.flatGrid}>
+                {FLAT_OPTIONS.slice(0, 8).map((option) => (
+                  <Pressable key={option} onPress={() => setFlat(option)} style={[styles.flatChip, flat === option && styles.flatChipActive]}>
+                    <Text style={[Type.labelMd, { color: flat === option ? Palette.onPrimary : Palette.onSurface }]}>{option}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.formCard}>
+              <Field label="Visitor name" value={name} onChangeText={setName} placeholder="Type or speak full name" />
+              <Field label="Visiting flat" value={flat} onChangeText={setFlat} placeholder="A-1204" />
+              <Field label="Purpose" value={purpose} onChangeText={setPurpose} placeholder="Delivery, family visit..." />
+              <Field
+                label="Vehicle (optional)"
+                value={vehicle}
+                onChangeText={(text) => setVehicle(text.toUpperCase())}
+                placeholder="KA 01 AB 1234"
+                last
+              />
+            </View>
+
+            <View style={styles.captureRow}>
+              <Pressable style={[styles.captureButton, photoCaptured && styles.captureButtonActive]} onPress={() => setPhotoCaptured((value) => !value)}>
+                <Feather name="camera" size={16} color={photoCaptured ? Palette.onPrimary : Palette.onSurface} />
+                <Text style={[Type.labelMd, { color: photoCaptured ? Palette.onPrimary : Palette.onSurface }]}>
+                  {photoCaptured ? 'Photo attached' : 'Capture photo'}
+                </Text>
+              </Pressable>
+              <Pressable style={styles.captureButton} onPress={() => Alert.alert('Voice input', 'Speech-to-text would fill the visitor name here.')}>
+                <Feather name="mic" size={16} color={Palette.onSurface} />
+                <Text style={[Type.labelMd, { color: Palette.onSurface }]}>Speak name</Text>
+              </Pressable>
+            </View>
+          </>
         )}
 
-        {/* Notify chips */}
         <View style={styles.notifyBlock}>
           <Text style={[Type.eyebrow, { color: Palette.onSurfaceMuted }]}>Notify host via</Text>
           <View style={styles.notifyRow}>
@@ -124,7 +179,6 @@ export default function VisitorDetails() {
         </View>
       </ScrollView>
 
-      {/* Sticky action bar */}
       <View style={styles.actionBar}>
         <View style={{ flex: 1 }}>
           <Button
@@ -135,12 +189,21 @@ export default function VisitorDetails() {
           />
         </View>
         <View style={{ flex: 1.4 }}>
-          <Button
-            label="Approve entry"
-            icon="check"
-            disabled={!canApprove}
-            onPress={() => router.replace('/(guard)/entry-approved')}
-          />
+          {isManual ? (
+            <Button
+              label="Request approval"
+              icon="bell"
+              disabled={!canRequestApproval}
+              onPress={() => setApprovalRequested(true)}
+            />
+          ) : (
+            <Button
+              label="Approve entry"
+              icon="check"
+              disabled={!canApprove}
+              onPress={() => router.replace('/(guard)/entry-approved')}
+            />
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -241,9 +304,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scroll: { padding: Spacing.lg, gap: Spacing.lg, paddingBottom: Spacing.xxxl },
-
   hero: { alignItems: 'center' },
-
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -252,8 +313,6 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     backgroundColor: Palette.statusApprovedBg,
   },
-
-  // Detail list
   detailList: {
     backgroundColor: Palette.surfaceContainerLowest,
     borderRadius: Radius.lg,
@@ -280,8 +339,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
-  // Manual form
+  flatBlock: {
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    borderRadius: Radius.lg,
+    backgroundColor: Palette.surfaceContainerLowest,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+  },
+  flatGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm },
+  flatChip: {
+    minWidth: 78,
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.sm,
+    borderRadius: Radius.md,
+    backgroundColor: Palette.surfaceContainerLow,
+  },
+  flatChipActive: { backgroundColor: Palette.primary },
   formCard: {
     backgroundColor: Palette.surfaceContainerLowest,
     borderRadius: Radius.lg,
@@ -292,8 +368,20 @@ const styles = StyleSheet.create({
   field: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.md, paddingBottom: Spacing.sm },
   fieldBorder: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: Palette.border },
   fieldInput: { color: Palette.onSurface, paddingVertical: 4 },
-
-  // Notify
+  captureRow: { flexDirection: 'row', gap: Spacing.sm },
+  captureButton: {
+    flex: 1,
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    borderRadius: Radius.md,
+    backgroundColor: Palette.surfaceContainerLowest,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Palette.border,
+  },
+  captureButtonActive: { backgroundColor: Palette.primary, borderColor: Palette.primary },
   notifyBlock: { gap: Spacing.sm },
   notifyRow: { flexDirection: 'row', gap: Spacing.sm, flexWrap: 'wrap' },
   chip: {
@@ -308,8 +396,6 @@ const styles = StyleSheet.create({
     borderColor: Palette.border,
   },
   chipActive: { backgroundColor: Palette.onSurface, borderColor: Palette.onSurface },
-
-  // Sticky action bar
   actionBar: {
     flexDirection: 'row',
     gap: Spacing.sm,
@@ -319,5 +405,27 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.surface,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Palette.border,
+  },
+  successWrap: { flex: 1, padding: Spacing.lg, alignItems: 'center', justifyContent: 'center', gap: Spacing.lg },
+  pendingBadge: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: Palette.primaryContainer,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  centerText: { textAlign: 'center' },
+  centerBody: { color: Palette.onSurfaceVariant, textAlign: 'center', paddingHorizontal: Spacing.lg },
+  summaryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.xs },
+  liveStatus: {
+    width: '100%',
+    minHeight: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.sm,
+    borderRadius: Radius.md,
+    backgroundColor: Palette.warningContainer,
   },
 });

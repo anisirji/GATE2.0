@@ -106,6 +106,23 @@ export default function Dashboard() {
         </View>
 
         {/* Pending dues — surfaces as a callout strip */}
+        <Pressable onPress={() => router.push('/(app)/spot-approval')}>
+          <Card padding="md" accentColor={Palette.warning} style={{ backgroundColor: Palette.warningContainer }}>
+            <View style={styles.spotApprovalRow}>
+              <View style={styles.spotApprovalIcon}>
+                <Feather name="bell" size={17} color={Palette.warning} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[Type.titleSm, { color: Palette.warning }]}>Visitor waiting at gate</Text>
+                <Text style={[Type.bodySm, { color: Palette.warning, marginTop: 2 }]} numberOfLines={1}>
+                  Ramesh Plumber needs spot approval.
+                </Text>
+              </View>
+              <Feather name="chevron-right" size={18} color={Palette.warning} />
+            </View>
+          </Card>
+        </Pressable>
+
         {pendingPayment ? (
           <Pressable onPress={() => router.push('/(app)/(tabs)/payments')}>
             <Card variant="outlined" padding="md">
@@ -303,6 +320,15 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     backgroundColor: Palette.surfaceContainerLow,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  spotApprovalRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  spotApprovalIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Palette.surfaceContainerLowest,
     alignItems: 'center',
     justifyContent: 'center',
   },
