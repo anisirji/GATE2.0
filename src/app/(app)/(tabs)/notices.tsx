@@ -6,6 +6,7 @@ import { Card } from '@/components/Card';
 import { Pill } from '@/components/StatusBadge';
 import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { MOCK_NOTICES, type Notice } from '@/data/mockData';
+import { useVisitors } from '@/lib/visitor-store';
 
 const CAT_STYLES: Record<Notice['category'], { bg: string; fg: string; label: string }> = {
   general: { bg: Palette.surfaceContainer, fg: Palette.onSurfaceVariant, label: 'General' },
@@ -15,6 +16,8 @@ const CAT_STYLES: Record<Notice['category'], { bg: string; fg: string; label: st
 };
 
 export default function Notices() {
+  const { notifications } = useVisitors();
+
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.header}>
@@ -30,6 +33,35 @@ export default function Notices() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {notifications.map((notification) => (
+          <Card
+            key={notification.id}
+            variant="outlined"
+            padding="lg"
+            style={{
+              backgroundColor:
+                notification.tone === 'success' ? Palette.statusApprovedBg : Palette.warningContainer,
+            }}>
+            <View style={styles.notificationRow}>
+              <View style={styles.notificationIcon}>
+                <Feather
+                  name={notification.tone === 'success' ? 'check' : 'clock'}
+                  size={16}
+                  color={notification.tone === 'success' ? Palette.statusApprovedText : Palette.warning}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[Type.titleMd, { color: Palette.onSurface }]}>{notification.title}</Text>
+                <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant, marginTop: 4 }]}>
+                  {notification.body}
+                </Text>
+                <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted, marginTop: Spacing.sm }]}>
+                  {notification.postedAt}
+                </Text>
+              </View>
+            </View>
+          </Card>
+        ))}
         {MOCK_NOTICES.map((n) => {
           const c = CAT_STYLES[n.category];
           return (
@@ -85,6 +117,15 @@ const styles = StyleSheet.create({
   },
   scroll: { paddingHorizontal: Layout.pageGutter, gap: Spacing.md, paddingBottom: Layout.scrollBottom },
   metaRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  notificationRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
+  notificationIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: Palette.surfaceContainerLowest,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   pinned: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   foot: {
     marginTop: Spacing.md,

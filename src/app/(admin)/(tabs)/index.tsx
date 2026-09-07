@@ -9,15 +9,17 @@ import { Eyebrow, SectionHeader } from '@/components/Section';
 import { SocietyFooter } from '@/components/SocietyFooter';
 import { Pill } from '@/components/StatusBadge';
 import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
-import { MOCK_COMPLAINTS, MOCK_ENTRY_LOG, MOCK_STAFF, SOCIETY_STATS } from '@/data/mockData';
+import { MOCK_COMPLAINTS, MOCK_STAFF, SOCIETY_STATS } from '@/data/mockData';
 import { useAuth } from '@/lib/auth';
+import { useVisitors } from '@/lib/visitor-store';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const { entryLog } = useVisitors();
   const router = useRouter();
   const onDuty = MOCK_STAFF.filter((s) => s.status === 'on-duty');
   const openComplaints = MOCK_COMPLAINTS.filter((c) => c.status !== 'resolved');
-  const recentActivity = MOCK_ENTRY_LOG.slice(0, 3);
+  const recentActivity = entryLog.filter((e) => !e.id.startsWith('spot-')).slice(0, 3);
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>

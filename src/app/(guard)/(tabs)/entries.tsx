@@ -7,7 +7,8 @@ import { Avatar } from '@/components/Avatar';
 import { Card } from '@/components/Card';
 import { Pill } from '@/components/StatusBadge';
 import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
-import { MOCK_ENTRY_LOG, type EntryLog } from '@/data/mockData';
+import { type EntryLog } from '@/data/mockData';
+import { useVisitors } from '@/lib/visitor-store';
 
 type Filter = 'all' | EntryLog['status'];
 
@@ -19,10 +20,11 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 export default function Entries() {
+  const { entryLog } = useVisitors();
   const [filter, setFilter] = useState<Filter>('all');
   const list = useMemo(
-    () => (filter === 'all' ? MOCK_ENTRY_LOG : MOCK_ENTRY_LOG.filter((e) => e.status === filter)),
-    [filter]
+    () => (filter === 'all' ? entryLog : entryLog.filter((e) => e.status === filter)),
+    [filter, entryLog]
   );
 
   return (

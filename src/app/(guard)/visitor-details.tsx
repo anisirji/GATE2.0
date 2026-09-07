@@ -9,13 +9,15 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Pill } from '@/components/StatusBadge';
 import { Palette, Radius, Spacing, Type } from '@/constants/theme';
-import { DEMO_SCANNED_PASS, FLAT_OPTIONS, MOCK_VISITORS } from '@/data/mockData';
+import { DEMO_SCANNED_PASS, FLAT_OPTIONS } from '@/data/mockData';
+import { useVisitors } from '@/lib/visitor-store';
 
 export default function VisitorDetails() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { visitors } = useVisitors();
 
-  const visitor = useMemo(() => MOCK_VISITORS.find((v) => v.id === id), [id]);
+  const visitor = useMemo(() => visitors.find((v) => v.id === id), [id, visitors]);
   const isManual = id === 'manual' || !visitor;
 
   const [name, setName] = useState(visitor?.name ?? '');

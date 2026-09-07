@@ -9,7 +9,8 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
-import { MOCK_VISITORS, type VisitorStatus } from '@/data/mockData';
+import { type VisitorStatus } from '@/data/mockData';
+import { useVisitors } from '@/lib/visitor-store';
 
 type FilterKey = 'all' | VisitorStatus;
 
@@ -23,11 +24,12 @@ const FILTERS: { key: FilterKey; label: string }[] = [
 
 export default function Visitors() {
   const router = useRouter();
+  const { visitors } = useVisitors();
   const [filter, setFilter] = useState<FilterKey>('all');
 
   const filtered = useMemo(
-    () => (filter === 'all' ? MOCK_VISITORS : MOCK_VISITORS.filter((v) => v.status === filter)),
-    [filter]
+    () => (filter === 'all' ? visitors : visitors.filter((v) => v.status === filter)),
+    [filter, visitors]
   );
 
   return (
@@ -81,31 +83,37 @@ export default function Visitors() {
           </View>
         ) : (
           filtered.map((v) => (
-            <Card key={v.id} variant="outlined" padding="md">
-              <View style={styles.row}>
-                <Avatar name={v.name} size={42} />
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={[Type.titleMd, { color: Palette.onSurface }]} numberOfLines={1}>
-                    {v.name}
-                  </Text>
-                  <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]} numberOfLines={1}>
-                    {v.purpose}
-                  </Text>
-                  <View style={styles.metaInline}>
-                    <Feather name="clock" size={11} color={Palette.onSurfaceMuted} />
-                    <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted }]}>{v.arrivalTime}</Text>
-                    {v.vehicleNo ? (
-                      <>
-                        <View style={styles.metaDot} />
-                        <Feather name="truck" size={11} color={Palette.onSurfaceMuted} />
-                        <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted }]}>{v.vehicleNo}</Text>
-                      </>
-                    ) : null}
+            <Pressable
+              key={v.id}
+              onPress={() => router.push({ pathname: '/(app)/visitor-details', params: { id: v.id } })}
+              style={({ pressed }) => pressed && { transform: [{ scale: 0.995 }], opacity: 0.94 }}>
+              <Card variant="outlined" padding="md">
+                <View style={styles.row}>
+                  <Avatar name={v.name} size={42} />
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={[Type.titleMd, { color: Palette.onSurface }]} numberOfLines={1}>
+                      {v.name}
+                    </Text>
+                    <Text style={[Type.bodySm, { color: Palette.onSurfaceVariant }]} numberOfLines={1}>
+                      {v.purpose}
+                    </Text>
+                    <View style={styles.metaInline}>
+                      <Feather name="clock" size={11} color={Palette.onSurfaceMuted} />
+                      <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted }]}>{v.arrivalTime}</Text>
+                      {v.vehicleNo ? (
+                        <>
+                          <View style={styles.metaDot} />
+                          <Feather name="truck" size={11} color={Palette.onSurfaceMuted} />
+                          <Text style={[Type.labelSm, { color: Palette.onSurfaceMuted }]}>{v.vehicleNo}</Text>
+                        </>
+                      ) : null}
+                    </View>
                   </View>
+                  <StatusBadge status={v.status} />
+                  <Feather name="chevron-right" size={16} color={Palette.outline} />
                 </View>
-                <StatusBadge status={v.status} />
-              </View>
-            </Card>
+              </Card>
+            </Pressable>
           ))
         )}
         <View style={{ height: Spacing.xl }} />

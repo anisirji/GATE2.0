@@ -9,8 +9,9 @@ import { SectionHeader } from '@/components/Section';
 import { SocietyFooter } from '@/components/SocietyFooter';
 import { Pill, StatusBadge } from '@/components/StatusBadge';
 import { Layout, Palette, Radius, Shadow, Spacing, Type } from '@/constants/theme';
-import { MOCK_NOTICES, MOCK_PAYMENTS, MOCK_VISITORS, QUICK_ACTIONS } from '@/data/mockData';
+import { MOCK_NOTICES, MOCK_PAYMENTS, QUICK_ACTIONS } from '@/data/mockData';
 import { useAuth } from '@/lib/auth';
+import { useVisitors } from '@/lib/visitor-store';
 
 const QA_ICON: Record<string, keyof typeof Feather.glyphMap> = {
   'qr-code': 'maximize',
@@ -21,10 +22,11 @@ const QA_ICON: Record<string, keyof typeof Feather.glyphMap> = {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { visitors, hasPendingSpotApproval } = useVisitors();
   const router = useRouter();
   const greeting = useGreeting();
 
-  const upcoming = MOCK_VISITORS.filter((v) => v.status === 'expected').slice(0, 3);
+  const upcoming = visitors.filter((v) => v.status === 'expected').slice(0, 3);
   const pendingPayment = MOCK_PAYMENTS.find((p) => p.status === 'pending');
   const pinnedNotice = MOCK_NOTICES.find((n) => n.pinned) ?? MOCK_NOTICES[0];
 
@@ -106,8 +108,9 @@ export default function Dashboard() {
         </View>
 
         {/* Pending dues — surfaces as a callout strip */}
-        <Pressable onPress={() => router.push('/(app)/spot-approval')}>
-          <Card padding="md" accentColor={Palette.warning} style={{ backgroundColor: Palette.warningContainer }}>
+        {hasPendingSpotApproval ? (
+          <Pressable onPress={() => router.push('/(app)/spot-approval')}>
+            <Card padding="md" accentColor={Palette.warning} style={{ backgroundColor: Palette.warningContainer }}>
             <View style={styles.spotApprovalRow}>
               <View style={styles.spotApprovalIcon}>
                 <Feather name="bell" size={17} color={Palette.warning} />
@@ -120,8 +123,9 @@ export default function Dashboard() {
               </View>
               <Feather name="chevron-right" size={18} color={Palette.warning} />
             </View>
-          </Card>
-        </Pressable>
+            </Card>
+          </Pressable>
+        ) : null}
 
         {pendingPayment ? (
           <Pressable onPress={() => router.push('/(app)/(tabs)/payments')}>

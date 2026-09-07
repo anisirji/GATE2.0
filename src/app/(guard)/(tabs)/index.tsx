@@ -6,8 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Avatar } from '@/components/Avatar';
 import { SocietyFooter } from '@/components/SocietyFooter';
 import { Layout, Palette, Radius, Spacing, Type } from '@/constants/theme';
-import { MOCK_ENTRY_LOG } from '@/data/mockData';
 import { useAuth } from '@/lib/auth';
+import { useVisitors } from '@/lib/visitor-store';
 
 type Action = {
   key: string;
@@ -28,9 +28,11 @@ const ACTIONS: Action[] = [
 
 export default function GuardDashboard() {
   const { user } = useAuth();
+  const { entryLog } = useVisitors();
   const router = useRouter();
 
-  const insideNow = MOCK_ENTRY_LOG.filter((e) => e.status === 'inside');
+  const dashboardEntryLog = entryLog.filter((e) => !e.id.startsWith('spot-'));
+  const insideNow = dashboardEntryLog.filter((e) => e.status === 'inside');
   const previewAvatars = insideNow.slice(0, 4);
 
   return (

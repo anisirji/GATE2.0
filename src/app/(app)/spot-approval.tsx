@@ -10,6 +10,7 @@ import { Card } from '@/components/Card';
 import { Pill } from '@/components/StatusBadge';
 import { Palette, Radius, Spacing, Type } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
+import { useVisitors } from '@/lib/visitor-store';
 
 const MOCK_SPOT_REQUEST = {
   visitorName: 'Ramesh Plumber',
@@ -24,6 +25,7 @@ const MOCK_SPOT_REQUEST = {
 export default function SpotApproval() {
   const router = useRouter();
   const { user } = useAuth();
+  const { approveSpotVisitor, dismissSpotApproval } = useVisitors();
   const [decision, setDecision] = useState<'allow' | 'deny' | null>(null);
 
   if (decision) {
@@ -38,7 +40,7 @@ export default function SpotApproval() {
             {allowed ? 'Entry allowed' : 'Entry denied'}
           </Text>
           <Text style={[Type.bodyLg, { color: Palette.onSurfaceVariant, textAlign: 'center', paddingHorizontal: Spacing.lg }]}>
-            The guard screen has been updated for {MOCK_SPOT_REQUEST.visitorName}.
+            {MOCK_SPOT_REQUEST.visitorName} is now visible in resident, guard, and admin visitor lists.
           </Text>
           <Button label="Done" onPress={() => router.back()} />
         </View>
@@ -84,8 +86,29 @@ export default function SpotApproval() {
         </Card>
 
         <View style={styles.actionGrid}>
-          <Button label="Allow" icon="check" onPress={() => setDecision('allow')} />
-          <Button label="Deny" icon="x" variant="danger" onPress={() => setDecision('deny')} />
+          <Button
+            label="Allow"
+            icon="check"
+            onPress={() => {
+              approveSpotVisitor({
+                id: 'spot-ramesh-plumber',
+                name: MOCK_SPOT_REQUEST.visitorName,
+                purpose: MOCK_SPOT_REQUEST.purpose,
+                flat: user?.flat ?? MOCK_SPOT_REQUEST.flat,
+                phone: MOCK_SPOT_REQUEST.phone,
+              });
+              setDecision('allow');
+            }}
+          />
+          <Button
+            label="Deny"
+            icon="x"
+            variant="danger"
+            onPress={() => {
+              dismissSpotApproval();
+              setDecision('deny');
+            }}
+          />
         </View>
         <Button
           label="Call visitor"
